@@ -1,0 +1,87 @@
+<%- include('partials/header') %>
+
+<div class="container">
+    <div class="mensaje-ya-participo">
+        <div class="icono-advertencia">⚠️</div>
+        <h2>Ya has participado en esta calificación</h2>
+        <p>Por motivos de transparencia y para garantizar la integridad de los resultados, solo permitimos una participación por dispositivo.</p>
+        <p>Si deseas ver los resultados consolidados, puedes hacerlo <a href="/resultados">aquí</a>.</p>
+        <div class="acciones">
+            <a href="/" class="btn-primary">Volver al inicio</a>
+            <a href="/resultados" class="btn-secondary">Ver resultados</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .mensaje-ya-participo {
+        max-width: 600px;
+        margin: 100px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .icono-advertencia {
+        font-size: 4rem;
+        color: var(--secondary);
+        margin-bottom: 20px;
+    }
+    
+    .mensaje-ya-participo h2 {
+        color: var(--primary);
+        margin-bottom: 20px;
+        font-size: 2rem;
+    }
+    
+    .mensaje-ya-participo p {
+        margin-bottom: 15px;
+        line-height: 1.6;
+        color: #555;
+    }
+    
+    .mensaje-ya-participo a {
+        color: var(--primary);
+        font-weight: bold;
+        text-decoration: none;
+    }
+    
+    .acciones {
+        margin-top: 30px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+    
+    .acciones .btn-primary,
+    .acciones .btn-secondary {
+        display: inline-block;
+        padding: 12px 25px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .acciones .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .acciones .btn-primary:hover {
+        background: #1a3a6e;
+    }
+    
+    .acciones .btn-secondary {
+        background: var(--secondary);
+        color: white;
+    }
+    
+    .acciones .btn-secondary:hover {
+        background: #d68910;
+    }
+</style>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,329 @@
+<%- include('../partials/header') %>
+
+<div class="admin-container">
+    <h1>Gestión de Secciones Administrativas</h1>
+    
+    <div class="admin-menu">
+        <a href="/admin/dashboard">Dashboard</a>
+        <a href="/admin/funcionarios">Funcionarios</a>
+        <a href="/admin/preguntas-funcionarios">Preguntas Funcionarios</a>
+        <a href="/admin/preguntas-administrativas">Preguntas Administrativas</a>
+        <a href="/admin/secciones" class="active">Secciones Administrativas</a>
+        <a href="/resultados">Ver Resultados</a>
+        <a href="/admin/logout">Cerrar Sesión</a>
+    </div>
+    
+    <div class="admin-content">
+        <div class="content-header">
+            <h2>Secciones Administrativas</h2>
+            <button id="add-seccion-btn" class="btn-primary">Agregar Sección</button>
+        </div>
+        
+        <div class="table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% secciones.forEach(seccion => { %>
+                    <tr data-id="<%= seccion.id %>">
+                        <td><%= seccion.id %></td>
+                        <td><%= seccion.nombre %></td>
+                        <td>
+                            <button class="btn-edit btn-sm">Editar</button>
+                            <button class="btn-delete btn-sm">Eliminar</button>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para agregar/editar sección -->
+<div id="seccion-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modal-title">Agregar Sección</h2>
+        <form id="seccion-form">
+            <input type="hidden" id="seccion-id">
+            <div class="form-group">
+                <label for="nombre">Nombre</label>
+                <input type="text" id="nombre" required>
+            </div>
+            <button type="submit" class="btn-primary">Guardar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('seccion-modal');
+        const addBtn = document.getElementById('add-seccion-btn');
+        const closeBtn = document.querySelector('.close');
+        const form = document.getElementById('seccion-form');
+        const modalTitle = document.getElementById('modal-title');
+        const seccionIdInput = document.getElementById('seccion-id');
+        
+        // Abrir modal para agregar
+        addBtn.addEventListener('click', function() {
+            modalTitle.textContent = 'Agregar Sección';
+            form.reset();
+            seccionIdInput.value = '';
+            modal.style.display = 'block';
+        });
+        
+        // Cerrar modal
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+        
+        // Editar sección
+        document.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const id = row.getAttribute('data-id');
+                const nombre = row.cells[1].textContent;
+                
+                modalTitle.textContent = 'Editar Sección';
+                seccionIdInput.value = id;
+                document.getElementById('nombre').value = nombre;
+                
+                modal.style.display = 'block';
+            });
+        });
+        
+        // Eliminar sección
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (confirm('¿Está seguro de eliminar esta sección?')) {
+                    const row = this.closest('tr');
+                    const id = row.getAttribute('data-id');
+                    
+                    fetch(`/admin/secciones/${id}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            row.remove();
+                        } else {
+                            alert('Error al eliminar sección');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al eliminar sección');
+                    });
+                }
+            });
+        });
+        
+        // Enviar formulario
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = seccionIdInput.value;
+            const nombre = document.getElementById('nombre').value;
+            
+            if (id) {
+                // Actualizar
+                fetch(`/admin/secciones/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nombre })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error al actualizar sección');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al actualizar sección');
+                });
+            } else {
+                // Agregar
+                fetch('/admin/secciones', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nombre })
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al agregar sección');
+                });
+            }
+        });
+        
+        // Cerrar modal al hacer clic fuera
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+<style>
+    /* Estilos similares a las vistas anteriores */
+    .admin-container {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .admin-menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .admin-menu a {
+        padding: 8px 15px;
+        background: var(--light);
+        border-radius: 5px;
+        text-decoration: none;
+        color: var(--dark);
+    }
+    
+    .admin-menu a.active {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .admin-table th, .admin-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .admin-table th {
+        background-color: var(--light);
+        font-weight: bold;
+    }
+    
+    .admin-table tr:hover {
+        background-color: #f5f5f5;
+    }
+    
+    .btn-sm {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+        margin-right: 5px;
+    }
+    
+    .btn-edit {
+        background: var(--secondary);
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+    
+    .btn-delete {
+        background: var(--danger);
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+    
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+    
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 10px;
+        position: relative;
+    }
+    
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        position: absolute;
+        right: 20px;
+        top: 15px;
+    }
+    
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+</style>
+
+<%- include('../partials/footer') %>

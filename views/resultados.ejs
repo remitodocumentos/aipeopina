@@ -1,0 +1,117 @@
+<%- include('partials/header') %>
+
+<div class="resultados-container">
+    <h2>Resultados Consolidados</h2>
+    
+    <section class="resultados-funcionarios">
+        <h3>Calificación de Funcionarios</h3>
+        
+        <% let funcionarioActual = null; %>
+        <% let preguntaActual = null; %>
+        
+        <% resultadosFuncionarios.forEach(resultado => { %>
+            <% if (funcionarioActual !== resultado.funcionario_id) { %>
+                <% if (funcionarioActual !== null) { %>
+                    </div>
+                <% } %>
+                <div class="funcionario-resultados">
+                    <h4><%= resultado.funcionario_nombre %> - <%= resultado.cargo %></h4>
+                <% funcionarioActual = resultado.funcionario_id; %>
+            <% } %>
+            
+            <% if (preguntaActual !== resultado.pregunta_id) { %>
+                <% if (preguntaActual !== null) { %>
+                    </div>
+                <% } %>
+                <div class="pregunta-resultados">
+                    <h5><%= resultado.pregunta_texto %></h5>
+                    <div class="resultados-grafica">
+                <% preguntaActual = resultado.pregunta_id; %>
+            <% } %>
+            
+            <div class="resultado-item">
+                <span><%= resultado.respuesta %>:</span>
+                <div class="barra-container">
+                    <div class="barra" style="width: 0%;" data-cantidad="<%= resultado.cantidad %>"></div>
+                </div>
+                <span class="cantidad"><%= resultado.cantidad %></span>
+            </div>
+        <% }); %>
+        
+        </div></div></div>
+    </section>
+    
+    <section class="resultados-administrativos">
+        <h3>Calificación Administrativa</h3>
+        
+        <% let seccionActual = null; %>
+        <% preguntaActual = null; %>
+        
+        <% resultadosAdministrativos.forEach(resultado => { %>
+            <% if (seccionActual !== resultado.seccion_id) { %>
+                <% if (seccionActual !== null) { %>
+                    </div>
+                <% } %>
+                <div class="seccion-resultados">
+                    <h4><%= resultado.seccion_nombre %></h4>
+                <% seccionActual = resultado.seccion_id; %>
+            <% } %>
+            
+            <% if (preguntaActual !== resultado.pregunta_id) { %>
+                <% if (preguntaActual !== null) { %>
+                    </div>
+                <% } %>
+                <div class="pregunta-resultados">
+                    <h5><%= resultado.pregunta_texto %></h5>
+                    <div class="resultados-grafica">
+                <% preguntaActual = resultado.pregunta_id; %>
+            <% } %>
+            
+            <div class="resultado-item">
+                <span><%= resultado.respuesta %>:</span>
+                <div class="barra-container">
+                    <div class="barra" style="width: 0%;" data-cantidad="<%= resultado.cantidad %>"></div>
+                </div>
+                <span class="cantidad"><%= resultado.cantidad %></span>
+            </div>
+        <% }); %>
+        
+        </div></div></div>
+    </section>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const barras = document.querySelectorAll('.barra');
+        
+        barras.forEach(barra => {
+            const cantidad = parseInt(barra.getAttribute('data-cantidad'));
+            const preguntaDiv = barra.closest('.pregunta-resultados');
+            const cantidades = preguntaDiv.querySelectorAll('.cantidad');
+            
+            let total = 0;
+            cantidades.forEach(c => {
+                total += parseInt(c.textContent);
+            });
+            
+            const porcentaje = total > 0 ? (cantidad / total) * 100 : 0;
+            barra.style.width = porcentaje + '%';
+            
+            // Asignar color según la respuesta
+            const respuesta = barra.closest('.resultado-item').querySelector('span').textContent;
+            if (respuesta.includes('excelente')) {
+                barra.style.backgroundColor = '#27ae60';
+            } else if (respuesta.includes('bueno')) {
+                barra.style.backgroundColor = '#2ecc71';
+            } else if (respuesta.includes('regular')) {
+                barra.style.backgroundColor = '#f39c12';
+            } else if (respuesta.includes('deficiente')) {
+                barra.style.backgroundColor = '#e67e22';
+            } else if (respuesta.includes('malo')) {
+                barra.style.backgroundColor = '#e74c3c';
+            }
+        });
+    });
+</script>
+
+<%- include('partials/footer') %>

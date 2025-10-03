@@ -1,0 +1,108 @@
+<%- include('partials/header') %>
+
+<div class="evaluacion-container">
+    <h2>Examinación de Funcionarios Municipales</h2>
+    
+    <!-- Sección de información del participante -->
+    <div class="participacion-info">
+        <h3>Información del Participante</h3>
+        <div class="opciones-participacion">
+            <div class="opcion-participacion">
+                <input type="radio" id="anonimo" name="tipo_participacion" value="anonimo" checked>
+                <label for="anonimo">Participar de forma anónima</label>
+            </div>
+            <div class="opcion-participacion">
+                <input type="radio" id="con_nombre" name="tipo_participacion" value="con_nombre">
+                <label for="con_nombre">Participar con mi nombre</label>
+            </div>
+        </div>
+        
+        <div id="campo_nombre" class="campo-nombre" style="display: none;">
+            <label for="nombre">Tu nombre:</label>
+            <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nombre completo">
+        </div>
+        
+        <input type="hidden" name="dispositivo_id" value="<%= dispositivoId %>">
+    </div>
+    
+    <form action="/evaluacion/funcionarios" method="POST">
+        <% funcionarios.forEach((funcionario, index) => { %>
+        <div class="funcionario-section" id="funcionario-<%= funcionario.id %>" <%= index > 0 ? 'style="display:none;"' : '' %>>
+            <h3><%= funcionario.seccion %></h3>
+            <div class="funcionario-info">
+                <h4><%= funcionario.nombre %></h4>
+                <p><%= funcionario.cargo %></p>
+            </div>
+            
+            <div class="preguntas-grid">
+                <% preguntas.forEach((pregunta) => { %>
+                <div class="pregunta-item">
+                    <p><%= pregunta.texto %></p>
+                    <div class="opciones">
+                        <% ['excelente', 'bueno', 'regular', 'deficiente', 'malo'].forEach(opcion => { %>
+                        <label>
+                            <input type="radio" 
+                                   name="<%= funcionario.id %>-<%= pregunta.id %>" 
+                                   value="<%= opcion %>"
+                                   required>
+                            <%= opcion.charAt(0).toUpperCase() + opcion.slice(1) %>
+                        </label>
+                        <% }); %>
+                    </div>
+                </div>
+                <% }); %>
+            </div>
+            
+            <% if (index < funcionarios.length - 1) { %>
+            <button type="button" class="btn-siguiente" onclick="mostrarSiguiente(<%= funcionario.id %>)">
+                Siguiente Funcionario
+            </button>
+            <% } else { %>
+            <button type="submit" class="btn-primary">Enviar Opinión</button>
+            <% } %>
+        </div>
+        <% }); %>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Manejar opciones de participación
+        const anonimoRadio = document.getElementById('anonimo');
+        const conNombreRadio = document.getElementById('con_nombre');
+        const campoNombre = document.getElementById('campo_nombre');
+        const nombreInput = document.getElementById('nombre');
+        
+        anonimoRadio.addEventListener('change', function() {
+            campoNombre.style.display = 'none';
+            nombreInput.value = '';
+        });
+        
+        conNombreRadio.addEventListener('change', function() {
+            campoNombre.style.display = 'block';
+            nombreInput.focus();
+        });
+    });
+    
+    function mostrarSiguiente(actualId) {
+        const actual = document.getElementById(`funcionario-${actualId}`);
+        actual.style.display = 'none';
+        
+        const secciones = document.querySelectorAll('.funcionario-section');
+        let mostrarSiguiente = false;
+        
+        secciones.forEach(seccion => {
+            if (mostrarSiguiente) {
+                seccion.style.display = 'block';
+                mostrarSiguiente = false;
+                
+                // Scroll al inicio de la nueva sección
+                seccion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else if (seccion.id === `funcionario-${actualId}`) {
+                mostrarSiguiente = true;
+            }
+        });
+    }
+</script>
+
+<%- include('partials/footer') %>
