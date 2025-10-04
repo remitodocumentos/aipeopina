@@ -28,7 +28,7 @@ app.use(session({
         tableName: 'session' // Nombre de la tabla para sesiones
     }),
     secret: process.env.SESSION_SECRET || 'secreto_temporal',
-    resave: false,
+    resave: true,
     saveUninitialized: false,
     cookie: { 
         maxAge: 3600000, // 1 hora

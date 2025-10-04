@@ -3,7 +3,9 @@ module.exports = {
     // Middleware para verificar si el usuario está autenticado
     isAuthenticated: (req, res, next) => {
         console.log('=== DEBUG AUTH MIDDLEWARE ===');
-        console.log('Sesión actual:', req.session);
+        console.log('ID de sesión:', req.sessionID);
+        console.log('Cookie de sesión:', req.headers.cookie);
+        console.log('Sesión completa:', JSON.stringify(req.session, null, 2));
         console.log('Usuario en sesión:', req.session.admin);
         console.log('============================');
         

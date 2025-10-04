@@ -23,14 +23,23 @@ router.post('/login', (req, res) => {
     
     // Verificar credenciales
     if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASSWORD) {
-        console.log('✅ Credenciales correctas');
         req.session.admin = { username };
+        console.log('✅ Credenciales correctas');
         console.log('✅ Sesión creada:', req.session.admin);
-        console.log('✅ Redirigiendo a /admin/dashboard');
-        return res.redirect('/admin/dashboard');
+        
+        // Forzar el guardado de la sesión antes de redirigir
+        req.session.save((err) => {
+            if (err) {
+                console.error('Error al guardar la sesión:', err);
+                return res.status(500).send('Error al iniciar sesión');
+            }
+            console.log('✅ Sesión guardada correctamente');
+            console.log('✅ Redirigiendo a /admin/dashboard');
+            return res.redirect('/admin/dashboard');
+        });
     } else {
         console.log('❌ Credenciales incorrectas');
-        return res.render('admin/login', { error: 'Credenciales inválidas' });
+        res.render('admin/login', { error: 'Credenciales inválidas' });
     }
 });
 
