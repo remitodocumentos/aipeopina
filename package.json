@@ -10,6 +10,7 @@
     "setup-seeds": "node setup-seeds.js"
   },
   "dependencies": {
+    "connect-pg-simple": "^10.0.0",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.3",
     "ejs": "^3.1.9",

@@ -24,6 +24,7 @@ async function dropTables() {
         console.log('Eliminando tablas existentes...');
         
         // Eliminar tablas en orden inverso para evitar errores de claves foráneas
+        await pool.query('DROP TABLE IF EXISTS session CASCADE');
         await pool.query('DROP TABLE IF EXISTS respuestas_administrativas CASCADE');
         await pool.query('DROP TABLE IF EXISTS respuestas_funcionarios CASCADE');
         await pool.query('DROP TABLE IF EXISTS participantes CASCADE');

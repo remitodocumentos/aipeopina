@@ -52,6 +52,14 @@ CREATE TABLE participantes (
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Tabla para sesiones (para almacenamiento persistente)
+CREATE TABLE IF NOT EXISTS session (
+    sid varchar NOT NULL COLLATE "default",
+    sess json NOT NULL,
+    expire timestamp(6) NOT NULL,
+    PRIMARY KEY (sid)
+);
+
 -- Modificar tablas de respuestas para relacionar con participantes
 ALTER TABLE respuestas_funcionarios ADD COLUMN participante_id INTEGER REFERENCES participantes(id);
 ALTER TABLE respuestas_administrativas ADD COLUMN participante_id INTEGER REFERENCES participantes(id);

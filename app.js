@@ -4,6 +4,7 @@ const path = require('path');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const { Pool } = require('pg');
+const pgSession = require('connect-pg-simple')(session);
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -20,12 +21,19 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Configuración de sesión
+// Configuración de sesión con PostgreSQL
 app.use(session({
+    store: new pgSession({
+        pool: pool,
+        tableName: 'session' // Nombre de la tabla para sesiones
+    }),
     secret: process.env.SESSION_SECRET || 'secreto_temporal',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 3600000 } // 1 hora
+    cookie: { 
+        maxAge: 3600000, // 1 hora
+        secure: process.env.NODE_ENV === 'production' // Solo HTTPS en producción
+    }
 }));
 
 // Middleware para agregar pool a las peticiones
@@ -44,3 +52,4 @@ app.use('/admin', require('./routes/admin'));
 app.listen(port, () => {
     console.log(`Servidor corriendo en http://localhost:${port}`);
 });
+
