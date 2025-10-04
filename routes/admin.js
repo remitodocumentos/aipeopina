@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');
 const authMiddleware = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
 
 // Página de login
 router.get('/login', (req, res) => {
@@ -10,6 +11,31 @@ router.get('/login', (req, res) => {
 });
 
 // Procesar login
+router.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASSWORD) {
+        const token = jwt.sign(
+            { username }, 
+            process.env.SESSION_SECRET, 
+            { expiresIn: '1h' }
+        );
+        
+        res.cookie('admin_token', token, {
+            maxAge: 3600000,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+        });
+        
+        return res.redirect('/admin/dashboard');
+    } else {
+        res.render('admin/login', { error: 'Credenciales inválidas' });
+    }
+});
+
+// Procesar login
+/*
 router.post('/login', (req, res) => {
     const { username, password } = req.body;
     
@@ -42,7 +68,7 @@ router.post('/login', (req, res) => {
         res.render('admin/login', { error: 'Credenciales inválidas' });
     }
 });
-
+*/
 // Cerrar sesión
 router.get('/logout', (req, res) => {
     req.session.destroy();
