@@ -44,8 +44,10 @@ INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
 ('Transparencia y rendición de cuentas', 1),
 ('Participación ciudadana', 1),
 ('Planificación estratégica', 1),
-('Gestión financiera', 1),
+('Gestión financiera', 1);
 
+-- Insertar preguntas administrativas - Infraestructura y servicios públicos
+INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES 
 ('Agua potable y saneamiento', 2),
 ('Recolección de basuras', 2),
 ('Energía eléctrica', 2),
@@ -56,10 +58,10 @@ INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
 ('Infraestructura educativa', 2),
 ('infraestructura de salud', 2),
 ('infraestructura practica deportiva', 2),
-('infraestructura recreación familiar', 2),
+('infraestructura recreación familiar', 2);
 
-
--- Continuar con todas las preguntas para cada sección...
+-- Insertar preguntas administrativas - Desarrollo urbano y territorial
+INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES 
 ('Ordenamiento territorial', 3),
 ('Espacio publico', 3),
 ('Vivienda', 3),
@@ -67,17 +69,19 @@ INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
 ('Zonas verdes', 3),
 ('Uso del suelo', 3),
 ('Zonas de parqueo', 3),
-('Urbanismo', 3),
+('Urbanismo', 3);
 
--- Continuar con todas las preguntas para cada sección...
+-- Insertar preguntas administrativas - Medio ambiente y sostenibilidad
+INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES 
 ('Calidad del aire', 4),
 ('Calidad del agua', 4),
 ('Biodiversidad y áreas verdes', 4),
 ('Gestión ambiental', 4),
 ('Cambio climático', 4),
-('Contaminación por ruido', 4),
+('Contaminación por ruido', 4);
 
--- Continuar con todas las preguntas para cada sección...
+-- Insertar preguntas administrativas - Desarrollo social y bienestar
+INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
 ('Calidad de la salud', 5),
 ('Calidad de la educación', 5),
 ('Seguridad y convivencia', 5),
@@ -85,17 +89,19 @@ INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
 ('Recreación y esparcimiento familiar', 5),
 ('Recreación y esparcimiento adulto mayor', 5),
 ('Inclusión social', 5),
-('Empleo y desarrollo económico', 5),
+('Empleo y desarrollo económico', 5);
 
--- Continuar con todas las preguntas para cada sección...
+-- Insertar preguntas administrativas - Desarrollo económico y competitividad
+INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES 
 ('Innovación y tecnología', 6),
 ('Emprendimiento y empresariado', 6),
 ('Actividad económica licita', 6),
 ('Turismo', 6),
 ('Inversión extranjera', 6),
-('Uso de la inteligencia artificial', 6),
+('Uso de la inteligencia artificial', 6);
 
--- Continuar con todas las preguntas para cada sección...
+-- Insertar preguntas administrativas - Calidad de vida en general
+INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES 
 ('Satisfacción ciudadana', 7),
 ('Salud y bienestar', 7),
 ('Seguridad alimentaria', 7),
@@ -110,9 +116,10 @@ INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
 ('Ambiente sano', 7),
 ('Vida cultural de calidad', 7),
 ('Recreación y esparcimiento de calidad', 7),
-('Seguridad humana', 7),
+('Seguridad humana', 7);
 
--- Continuar con todas las preguntas para cada sección...
+-- Insertar preguntas administrativas - Vulneración del bienestar social y la convivencia ciudadana
+INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
 ('Acciones contra la violencia familiar', 8),
 ('Acciones contra la violencia sexual', 8),
 ('Acciones contra la violencia sexual', 8),
@@ -127,6 +134,9 @@ INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
 ('Acciones contra la pobreza multidimensional', 8),
 ('Acciones contra la delincuencia común', 8),
 ('Acciones contra la corrupción', 8),
-('Acciones contra la falta de respuesta institucional', 8),
+('Acciones contra la falta de respuesta institucional', 8);
 
 -- Y así sucesivamente para todas las secciones...
+
+
+
