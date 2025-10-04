@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Aplicación web para evaluación municipal",
   "main": "app.js",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
