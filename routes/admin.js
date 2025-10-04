@@ -13,12 +13,24 @@ router.get('/login', (req, res) => {
 router.post('/login', (req, res) => {
     const { username, password } = req.body;
     
-    // Verificar credenciales (en un entorno real, usaríamos bcrypt y base de datos)
+    console.log('=== DEBUG LOGIN ===');
+    console.log('Usuario ingresado:', username);
+    console.log('Contraseña ingresada:', password);
+    console.log('ADMIN_USER de entorno:', process.env.ADMIN_USER);
+    console.log('ADMIN_PASSWORD de entorno:', process.env.ADMIN_PASSWORD ? 'Configurado' : 'No configurado');
+    console.log('SESSION_SECRET de entorno:', process.env.SESSION_SECRET ? 'Configurado' : 'No configurado');
+    console.log('==================');
+    
+    // Verificar credenciales
     if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASSWORD) {
+        console.log('✅ Credenciales correctas');
         req.session.admin = { username };
-        res.redirect('/admin/dashboard');
+        console.log('✅ Sesión creada:', req.session.admin);
+        console.log('✅ Redirigiendo a /admin/dashboard');
+        return res.redirect('/admin/dashboard');
     } else {
-        res.render('admin/login', { error: 'Credenciales inválidas' });
+        console.log('❌ Credenciales incorrectas');
+        return res.render('admin/login', { error: 'Credenciales inválidas' });
     }
 });
 
@@ -31,6 +43,10 @@ router.get('/logout', (req, res) => {
 // Dashboard
 router.get('/dashboard', authMiddleware.isAuthenticated, async (req, res) => {
     try {
+        console.log('=== DEBUG DASHBOARD ===');
+        console.log('Usuario en sesión:', req.session.admin);
+        console.log('====================');
+
         // Obtener estadísticas para el dashboard
         const totalRespuestasFuncionarios = await db.getTotalRespuestasFuncionarios();
         const totalRespuestasAdministrativas = await db.getTotalRespuestasAdministrativas();
@@ -40,7 +56,7 @@ router.get('/dashboard', authMiddleware.isAuthenticated, async (req, res) => {
             totalRespuestasAdministrativas
         });
     } catch (error) {
-        console.error(error);
+        console.error('Error al cargar el dashboard:', error);
         res.status(500).send('Error al cargar el dashboard');
     }
 });

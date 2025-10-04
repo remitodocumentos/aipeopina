@@ -10,7 +10,8 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "setup": "node setup.js",
-    "setup-seeds": "node setup-seeds.js"
+    "setup-seeds": "node setup-seeds.js",
+    "setup-railway": "node setup-railway.js"
   },
   "dependencies": {
     "connect-pg-simple": "^10.0.0",

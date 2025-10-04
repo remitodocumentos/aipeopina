@@ -32,7 +32,8 @@ app.use(session({
     saveUninitialized: false,
     cookie: { 
         maxAge: 3600000, // 1 hora
-        secure: process.env.NODE_ENV === 'production' // Solo HTTPS en producción
+        secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+        sameSite: 'lax'
     }
 }));
 
