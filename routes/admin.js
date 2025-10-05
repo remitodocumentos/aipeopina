@@ -127,7 +127,8 @@ router.get('/preguntas-funcionarios', authMiddleware.isAuthenticated, async (req
         res.render('admin/preguntas', { 
             preguntas, 
             tipo: 'funcionarios',
-            titulo: 'Preguntas para Funcionarios'
+            titulo: 'Preguntas para Funcionarios',
+            secciones: [] // 👈 evita el error en la vista
         });
     } catch (error) {
         console.error(error);
