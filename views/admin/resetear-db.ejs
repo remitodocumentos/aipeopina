@@ -1,0 +1,266 @@
+<%- include('../partials/header') %>
+
+<div class="admin-container">
+    <h1>Resetear Base de Datos</h1>
+    
+    <div class="admin-menu">
+        <a href="/admin/dashboard">Dashboard</a>
+        <a href="/admin/funcionarios">Funcionarios</a>
+        <a href="/admin/preguntas-funcionarios">Preguntas Funcionarios</a>
+        <a href="/admin/preguntas-administrativas">Preguntas Administrativas</a>
+        <a href="/admin/secciones">Secciones Administrativas</a>
+        <a href="/admin/resetear-db" class="active">Resetear Base de Datos</a>
+        <a href="/resultados">Ver Resultados</a>
+        <a href="/admin/logout">Cerrar Sesión</a>
+    </div>
+    
+    <div class="alert-container">
+        <% if (success) { %>
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <%= success %>
+        </div>
+        <% } %>
+        
+        <% if (error) { %>
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            <%= error %>
+        </div>
+        <% } %>
+    </div>
+    
+    <div class="reset-container">
+        <div class="warning-box">
+            <h2><i class="fas fa-exclamation-triangle"></i> ADVERTENCIA</h2>
+            <p>Esta acción es <strong>irreversible</strong> y eliminará permanentemente:</p>
+            <ul>
+                <li>Todas las respuestas de evaluación de funcionarios</li>
+                <li>Todas las respuestas de evaluación administrativa</li>
+                <li>Todos los datos de participantes</li>
+                <li>Todas las sesiones activas</li>
+            </ul>
+            <p>Después del reseteo, la base de datos volverá a su estado inicial con:</p>
+            <ul>
+                <li>Los funcionarios predefinidos</li>
+                <li>Las preguntas predefinidas</li>
+                <li>Las secciones administrativas predefinidas</li>
+            </ul>
+        </div>
+        
+        <div class="confirm-form">
+            <h3>Confirmación requerida</h3>
+            <p>Para continuar, debes escribir <code>RESET</code> en el campo de texto:</p>
+            
+            <form action="/admin/resetear-db" method="POST" id="resetForm">
+                <div class="form-group">
+                    <label for="confirmText">Escribe "RESET" para confirmar:</label>
+                    <input type="text" id="confirmText" name="confirmText" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="confirmCheck" required>
+                        Entiendo que esta acción eliminará permanentemente todos los datos y no se puede deshacer
+                    </label>
+                </div>
+                
+                <button type="submit" id="resetButton" class="btn-danger" disabled>
+                    <i class="fas fa-database"></i> Resetear Base de Datos
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-container {
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .admin-menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .admin-menu a {
+        padding: 8px 15px;
+        background: var(--light);
+        border-radius: 5px;
+        text-decoration: none;
+        color: var(--dark);
+    }
+    
+    .admin-menu a.active {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .alert-container {
+        margin-bottom: 30px;
+    }
+    
+    .alert {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .reset-container {
+        max-width: 800px;
+    }
+    
+    .warning-box {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .warning-box h2 {
+        color: #856404;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .warning-box ul {
+        margin: 10px 0;
+        padding-left: 20px;
+    }
+    
+    .warning-box li {
+        margin-bottom: 5px;
+    }
+    
+    .confirm-form {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 25px;
+    }
+    
+    .confirm-form h3 {
+        color: var(--dark);
+        margin-bottom: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--dark);
+    }
+    
+    .form-group input[type="text"] {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #dee2e6;
+        border-radius: 5px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+    }
+    
+    .form-group input[type="text"]:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+    
+    .form-group input[type="checkbox"] {
+        margin-right: 8px;
+    }
+    
+    .btn-danger {
+        background-color: var(--danger);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-danger:hover:not(:disabled) {
+        background-color: #c82333;
+        transform: translateY(-2px);
+    }
+    
+    .btn-danger:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    code {
+        background-color: #e9ecef;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmText = document.getElementById('confirmText');
+        const confirmCheck = document.getElementById('confirmCheck');
+        const resetButton = document.getElementById('resetButton');
+        const resetForm = document.getElementById('resetForm');
+        
+        function validateForm() {
+            const isTextValid = confirmText.value.trim() === 'RESET';
+            const isCheckValid = confirmCheck.checked;
+            
+            resetButton.disabled = !(isTextValid && isCheckValid);
+        }
+        
+        confirmText.addEventListener('input', validateForm);
+        confirmCheck.addEventListener('change', validateForm);
+        
+        resetForm.addEventListener('submit', function(e) {
+            if (confirmText.value.trim() !== 'RESET' || !confirmCheck.checked) {
+                e.preventDefault();
+            } else {
+                // Mostrar confirmación adicional
+                if (!confirm('¿Estás absolutamente seguro? Esta acción eliminará permanentemente todos los datos y no se puede deshacer.')) {
+                    e.preventDefault();
+                }
+            }
+        });
+    });
+</script>
+
+<%- include('../partials/footer') %>

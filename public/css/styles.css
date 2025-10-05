@@ -276,3 +276,19 @@ footer {
         gap: 10px;
     }
 }
+
+/* Estilos para el botón de resetear DB */
+.btn-reset {
+    background-color: var(--danger) !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+
+.btn-reset:hover {
+    background-color: #c82333 !important;
+}
+
+/* Iconos para el menú */
+.admin-menu a i {
+    margin-right: 5px;
+}

@@ -268,4 +268,249 @@ router.delete('/secciones/:id', authMiddleware.isAuthenticated, async (req, res)
     }
 });
 
+// Para resetear base de datos y restablecer datos iniciales
+// ... (rutas existentes)
+
+// Página de confirmación para resetear base de datos
+router.get('/resetear-db', authMiddleware.isAuthenticated, (req, res) => {
+    res.render('admin/resetear-db', { 
+        title: 'Resetear Base de Datos',
+        error: null,
+        success: null
+    });
+});
+
+// Procesar reseteo de base de datos
+router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => {
+    try {
+        console.log('Iniciando reseteo de la base de datos...');
+        
+        // 1. Eliminar todas las tablas en orden inverso para evitar errores de claves foráneas
+        await req.db.query('DROP TABLE IF EXISTS respuestas_administrativas CASCADE');
+        await req.db.query('DROP TABLE IF EXISTS respuestas_funcionarios CASCADE');
+        await req.db.query('DROP TABLE IF EXISTS participantes CASCADE');
+        await req.db.query('DROP TABLE IF EXISTS preguntas_administrativas CASCADE');
+        await req.db.query('DROP TABLE IF EXISTS preguntas_funcionarios CASCADE');
+        await req.db.query('DROP TABLE IF EXISTS secciones_administrativas CASCADE');
+        await req.db.query('DROP TABLE IF EXISTS funcionarios CASCADE');
+        await req.db.query('DROP TABLE IF EXISTS session CASCADE');
+        
+        console.log('✅ Tablas eliminadas');
+        
+        // 2. Volver a crear las tablas
+        await req.db.query(`
+            CREATE TABLE funcionarios (
+                id SERIAL PRIMARY KEY,
+                nombre VARCHAR(100) NOT NULL,
+                cargo VARCHAR(100) NOT NULL,
+                seccion VARCHAR(100) NOT NULL
+            );
+            
+            CREATE TABLE preguntas_funcionarios (
+                id SERIAL PRIMARY KEY,
+                texto VARCHAR(255) NOT NULL,
+                categoria VARCHAR(100) NOT NULL
+            );
+            
+            CREATE TABLE secciones_administrativas (
+                id SERIAL PRIMARY KEY,
+                nombre VARCHAR(100) NOT NULL
+            );
+            
+            CREATE TABLE preguntas_administrativas (
+                id SERIAL PRIMARY KEY,
+                texto VARCHAR(255) NOT NULL,
+                seccion_id INTEGER REFERENCES secciones_administrativas(id)
+            );
+            
+            CREATE TABLE participantes (
+                id SERIAL PRIMARY KEY,
+                dispositivo_id VARCHAR(255) NOT NULL UNIQUE,
+                nombre VARCHAR(100),
+                fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            
+            CREATE TABLE session (
+                sid varchar NOT NULL COLLATE "default",
+                sess json NOT NULL,
+                expire timestamp(6) NOT NULL,
+                PRIMARY KEY (sid)
+            );
+            
+            CREATE TABLE respuestas_funcionarios (
+                id SERIAL PRIMARY KEY,
+                funcionario_id INTEGER NOT NULL REFERENCES funcionarios(id),
+                pregunta_id INTEGER NOT NULL REFERENCES preguntas_funcionarios(id),
+                respuesta VARCHAR(20) NOT NULL CHECK (respuesta IN ('excelente', 'bueno', 'regular', 'deficiente', 'malo')),
+                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                participante_id INTEGER REFERENCES participantes(id)
+            );
+            
+            CREATE TABLE respuestas_administrativas (
+                id SERIAL PRIMARY KEY,
+                seccion_id INTEGER NOT NULL REFERENCES secciones_administrativas(id),
+                pregunta_id INTEGER NOT NULL REFERENCES preguntas_administrativas(id),
+                respuesta VARCHAR(20) NOT NULL CHECK (respuesta IN ('excelente', 'bueno', 'regular', 'deficiente', 'malo')),
+                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                participante_id INTEGER REFERENCES participantes(id)
+            );
+        `);
+        
+        console.log('✅ Tablas recreadas');
+        
+        // 3. Insertar datos iniciales
+        await req.db.query(`
+            -- Insertar funcionarios
+            INSERT INTO funcionarios (nombre, cargo, seccion) VALUES 
+            ('Luis Angel Ramirez Vargas', 'Alcalde', 'Despacho del alcalde'),
+            ('Jairo Garzón Conde', 'Secretario', 'Secretaria general y de gobierno'),
+            ('Alfredo Charry Medina', 'Secretario', 'Secretaria de hacienda'),
+            ('Ana Maria Conde Garzon', 'Secretaria', 'Secretaria de protección social'),
+            ('Alexander Pulecio Charry', 'Secretario', 'Secretaria de planeación'),
+            ('Daniela Ramirez Chavarro', 'Secretaria', 'Secretaria de infraestructura'),
+            ('Javier Charry Bonilla', 'Secretario', 'Secretaria de desarrollo económico'),
+            ('Maria Ximena Martin Charry', 'Secretaria', 'Secretaria de tránsito'),
+            ('Joan Orlando Garay Diaz', 'Inspector', 'Inspección de policía'),
+            ('Helenohora Llanos Diaz', 'Comisaria', 'Comisaria de familia');
+            
+            -- Insertar preguntas para funcionarios
+            INSERT INTO preguntas_funcionarios (texto, categoria) VALUES 
+            ('Integridad y ética', 'Personal'),
+            ('Respeto, dignidad y decoro', 'Personal'),
+            ('Aptitud y honestidad', 'Personal'),
+            ('Veracidad y cumplimiento', 'Personal'),
+            ('Comunicación y empatía', 'Personal'),
+            ('Liderazgo y gestión de equipos', 'Profesional'),
+            ('Capacidad para resolver problemas', 'Profesional'),
+            ('Transparencia y eficiencia en la toma de decisiones', 'Profesional'),
+            ('Eficiencia en la gestión de los recursos', 'Desempeño'),
+            ('Cumplimiento de metas', 'Desempeño'),
+            ('Proyectos estratégicos con resultados concretos', 'Desempeño'),
+            ('Ejercicio adecuado del cargo', 'Desempeño'),
+            ('Uso adecuado del tiempo de trabajo', 'Desempeño');
+            
+            -- Insertar secciones administrativas
+            INSERT INTO secciones_administrativas (nombre) VALUES 
+            ('Gestión y administración pública'),
+            ('Infraestructura y servicios públicos'),
+            ('Desarrollo urbano y territorial'),
+            ('Medio ambiente y sostenibilidad'),
+            ('Desarrollo social y bienestar'),
+            ('Desarrollo económico y competitividad'),
+            ('Calidad de vida en general'),
+            ('Vulneración del bienestar social y la convivencia ciudadana');
+            `);
+
+        // Insertar preguntas administrativas detalladas
+        await req.db.query(`
+        -- Gestión y administración pública
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES 
+        ('Eficiencia administrativa', 1),
+        ('Transparencia y rendición de cuentas', 1),
+        ('Participación ciudadana', 1),
+        ('Planificación estratégica', 1),
+        ('Gestión financiera', 1),
+    
+        -- Infraestructura y servicios públicos
+        ('Agua potable y saneamiento', 2),
+        ('Recolección de basuras', 2),
+        ('Energía eléctrica', 2),
+        ('Alcantarillado y aguas servidas', 2),
+        ('Gestión de residuos solidos', 2),
+        ('Vías, movilidad y transporte publico ', 2),
+        ('Telecomunicaciones e internet', 2),
+        ('Infraestructura educativa', 2),
+        ('infraestructura de salud', 2),
+        ('infraestructura practica deportiva', 2),
+        ('infraestructura recreación familiar', 2);
+    
+        -- Desarrollo urbano y territorial
+        ('Ordenamiento territorial', 3),
+        ('Espacio publico', 3),
+        ('Vivienda', 3),
+        ('Patrimonio y paisaje urbano', 3),
+        ('Zonas verdes', 3),
+        ('Uso del suelo', 3),
+        ('Zonas de parqueo', 3),
+        ('Urbanismo', 3);
+    
+        -- Medio ambiente y sostenibilidad
+        ('Calidad del aire', 4),
+        ('Calidad del agua', 4),
+        ('Biodiversidad y áreas verdes', 4),
+        ('Gestión ambiental', 4),
+        ('Cambio climático', 4),
+        ('Contaminación por ruido', 4);
+    
+        -- Desarrollo social y bienestar
+        ('Calidad de la salud', 5),
+        ('Calidad de la educación', 5),
+        ('Seguridad y convivencia', 5),
+        ('Cultura y deporte', 5),
+        ('Recreación y esparcimiento familiar', 5),
+        ('Recreación y esparcimiento adulto mayor', 5),
+        ('Inclusión social', 5),
+        ('Empleo y desarrollo económico', 5);
+    
+        -- Desarrollo económico y competitividad
+        ('Innovación y tecnología', 6),
+        ('Emprendimiento y empresariado', 6),
+        ('Actividad económica licita', 6),
+        ('Turismo', 6),
+        ('Inversión extranjera', 6),
+        ('Uso de la inteligencia artificial', 6);
+    
+        -- Calidad de vida en general
+        ('Satisfacción ciudadana', 7),
+        ('Salud y bienestar', 7),
+        ('Seguridad alimentaria', 7),
+        ('Empleo de calidad', 7),
+        ('Vivienda adecuada', 7),
+        ('Estabilidad económica familiar', 7),
+        ('Salud física', 7),
+        ('Salud mental', 7),
+        ('Ambientes saludables', 7),
+        ('Inclusión educativa', 7),
+        ('Confianza y solidaridad', 7),
+        ('Ambiente sano', 7),
+        ('Vida cultural de calidad', 7),
+        ('Recreación y esparcimiento de calidad', 7),
+        ('Seguridad humana', 7);
+    
+        -- Vulneración del bienestar social y la convivencia ciudadana
+        ('Acciones contra la violencia familiar', 8),
+        ('Acciones contra la violencia sexual', 8),
+        ('Acciones contra la violencia sexual', 8),
+        ('Acciones contra la drogadicción', 8),
+        ('Acciones contra el alcoholismo', 8),
+        ('Acciones contra el tabaquismo', 8),
+        ('Acciones contra la inseguridad ciudadana', 8),
+        ('Acciones contra la inseguridad vial', 8),
+        ('Acciones contra el desamparo de adultos mayores', 8),
+        ('Acciones contra la contaminación ambiental y acustica', 8),
+        ('Acciones contra la ocupación del espacio público', 8),
+        ('Acciones contra la pobreza multidimensional', 8),
+        ('Acciones contra la delincuencia común', 8),
+        ('Acciones contra la corrupción', 8),
+        ('Acciones contra la falta de respuesta institucional', 8);
+    `);    
+        
+        console.log('✅ Datos iniciales insertados');
+        
+        res.render('admin/resetear-db', { 
+            title: 'Resetear Base de Datos',
+            success: 'Base de datos reseteada exitosamente',
+            error: null
+        });
+        
+    } catch (error) {
+        console.error('Error al resetear la base de datos:', error);
+        res.render('admin/resetear-db', { 
+            title: 'Resetear Base de Datos',
+            error: 'Error al resetear la base de datos: ' + error.message,
+            success: null
+        });
+    }
+});
+
 module.exports = router;
