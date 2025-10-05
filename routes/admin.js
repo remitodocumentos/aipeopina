@@ -77,7 +77,12 @@ router.get('/funcionarios', authMiddleware.isAuthenticated, async (req, res) => 
     try {
         const funcionarios = await db.getFuncionarios();
         console.log(`Funcionarios obtenidos: ${funcionarios.length}`);
-        res.render('admin/funcionarios', { funcionarios });
+        //res.render('admin/funcionarios', { funcionarios });
+        res.render('admin/funcionarios', {
+        funcionarios: funcionarios.rows,
+        preguntas: preguntas.rows
+        });
+
     } catch (error) {
         console.error(error);
         res.status(500).send('Error al cargar funcionarios');
