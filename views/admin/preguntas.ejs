@@ -139,9 +139,7 @@
                     document.getElementById('categoria').value = categoriaOSeccion;
                 } else {
                     // Para preguntas administrativas, necesitamos encontrar el ID de la sección por su nombre
-              ////////////const secciones = <%- JSON.stringify(secciones) %>;
-                   
-                    const seccion = secciones.find(s => s.nombre === categoriaOSeccion);
+                 const secciones = <%- JSON.stringify(secciones) %>;
                     if (seccion) {
                         document.getElementById('seccion_id').value = seccion.id;
                     }
