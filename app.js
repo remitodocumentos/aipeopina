@@ -28,14 +28,14 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'secreto_temporal',
   resave: false,
   saveUninitialized: false,
+  name: 'connect.sid',
   cookie: {
     maxAge: 3600000,
     secure: true,           // Render usa HTTPS, así que esto está bien
     httpOnly: true,
     sameSite: 'none'        // 👈 clave para que se envíe en peticiones cross-origin
   },
-  name: 'connect.sid'        // 👈 asegúrate que esta cookie se llame así
-}));
+ }));
 /*
 // Configuración de sesión con PostgreSQL
 app.use(session({
