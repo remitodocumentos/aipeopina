@@ -6,7 +6,6 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const { Pool } = require('pg');
 const pgSession = require('connect-pg-simple')(session);
-
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -16,7 +15,8 @@ app.set('trust proxy', 1);
 // 📦 Configuración de base de datos PostgreSQL en Railway
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
+  client_encoding: 'UTF8'
 });
 
 // ⚙️ Configuración general
@@ -25,6 +25,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
+
+// Middleware para configurar codificación UTF-8
+app.use((req, res, next) => {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    next();
+});
 
 // 🛡️ Configuración de sesión persistente con PostgreSQL
 app.use(session({

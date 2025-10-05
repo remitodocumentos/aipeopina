@@ -76,6 +76,7 @@ router.get('/dashboard', authMiddleware.isAuthenticated, async (req, res) => {
 router.get('/funcionarios', authMiddleware.isAuthenticated, async (req, res) => {
     try {
         const funcionarios = await db.getFuncionarios();
+        console.log(`Funcionarios obtenidos: ${funcionarios.length}`);
         res.render('admin/funcionarios', { funcionarios });
     } catch (error) {
         console.error(error);
@@ -124,6 +125,7 @@ router.delete('/funcionarios/:id', authMiddleware.isAuthenticated, async (req, r
 router.get('/preguntas-funcionarios', authMiddleware.isAuthenticated, async (req, res) => {
     try {
         const preguntas = await db.getPreguntasFuncionarios();
+        console.log(`Preguntas de funcionarios obtenidas: ${preguntas.length}`);
         res.render('admin/preguntas', { 
             preguntas, 
             tipo: 'funcionarios',
@@ -141,6 +143,8 @@ router.get('/preguntas-administrativas', authMiddleware.isAuthenticated, async (
     try {
         const preguntas = await db.getPreguntasAdministrativas();
         const secciones = await db.getSeccionesAdministrativas();
+        console.log(`Preguntas administrativas obtenidas: ${preguntas.length}`);
+        console.log(`Secciones obtenidas: ${secciones.length}`);
         res.render('admin/preguntas', { 
             preguntas, 
             secciones,
@@ -218,6 +222,7 @@ router.delete('/preguntas/:tipo/:id', authMiddleware.isAuthenticated, async (req
 router.get('/secciones', authMiddleware.isAuthenticated, async (req, res) => {
     try {
         const secciones = await db.getSeccionesAdministrativas();
+        console.log(`Secciones obtenidas: ${secciones.length}`);
         res.render('admin/secciones', { secciones });
     } catch (error) {
         console.error(error);
