@@ -24,6 +24,21 @@ app.use(cookieParser());
 
 // Configuración de sesión con PostgreSQL
 app.use(session({
+  store: new pgSession({ pool, tableName: 'session' }),
+  secret: process.env.SESSION_SECRET || 'secreto_temporal',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 3600000,
+    secure: true,           // Render usa HTTPS, así que esto está bien
+    httpOnly: true,
+    sameSite: 'none'        // 👈 clave para que se envíe en peticiones cross-origin
+  },
+  name: 'connect.sid'        // 👈 asegúrate que esta cookie se llame así
+}));
+/*
+// Configuración de sesión con PostgreSQL
+app.use(session({
     store: new pgSession({
         pool: pool,
         tableName: 'session' // Nombre de la tabla para sesiones
@@ -37,7 +52,7 @@ app.use(session({
         sameSite: 'lax'
     }
 }));
-
+*/
 // Middleware para agregar pool a las peticiones
 app.use((req, res, next) => {
     req.db = pool;
