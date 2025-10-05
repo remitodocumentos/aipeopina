@@ -358,7 +358,7 @@ router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => 
         
         console.log('✅ Tablas recreadas');
         
-        // 3. Insertar datos iniciales
+        // 3. Insertar datos iniciales totales desde seeds
         await req.db.query(`
             -- Insertar funcionarios
             INSERT INTO funcionarios (nombre, cargo, seccion) VALUES 
