@@ -409,7 +409,7 @@ router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => 
         ('Transparencia y rendición de cuentas', 1),
         ('Participación ciudadana', 1),
         ('Planificación estratégica', 1),
-        ('Gestión financiera', 1),
+        ('Gestión financiera', 1);
     
         -- Infraestructura y servicios públicos
         ('Agua potable y saneamiento', 2),
