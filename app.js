@@ -1,3 +1,4 @@
+//app.js
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
@@ -28,11 +29,11 @@ app.use(session({
         tableName: 'session' // Nombre de la tabla para sesiones
     }),
     secret: process.env.SESSION_SECRET || 'secreto_temporal',
-    resave: true,
+    resave: false,
     saveUninitialized: false,
     cookie: { 
         maxAge: 3600000, // 1 hora
-        secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+        secure: true, //process.env.NODE_ENV === 'production', // Solo HTTPS en producción
         sameSite: 'lax'
     }
 }));

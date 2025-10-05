@@ -1,26 +1,3 @@
-// middleware/auth.js
-module.exports = {
-    isAuthenticated: (req, res, next) => {
-        const token = req.cookies.admin_token;
-        
-        if (token) {
-            try {
-                const decoded = jwt.verify(token, process.env.SESSION_SECRET);
-                req.admin = { username: decoded.username };
-                return next();
-            } catch (err) {
-                // Token inválido
-            }
-        }
-        
-        res.redirect('/admin/login');
-    }
-};
-
-
-
-
-/*
 module.exports = {
     // Middleware para verificar si el usuario está autenticado
     isAuthenticated: (req, res, next) => {
@@ -39,4 +16,3 @@ module.exports = {
         res.redirect('/admin/login');
     }
 };
-*/
