@@ -280,6 +280,7 @@ router.get('/resetear-db', authMiddleware.isAuthenticated, (req, res) => {
     });
 });
 
+
 // Procesar reseteo de base de datos
 router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => {
     try {
@@ -401,114 +402,51 @@ router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => 
             ('Vulneración del bienestar social y la convivencia ciudadana');
             `);
 
-        // Insertar preguntas administrativas detalladas
-        await req.db.query(`
-        -- Gestión y administración pública
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES 
-        ('Eficiencia administrativa', 1);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('Transparencia y rendición de cuentas', 1);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('Participación ciudadana', 1);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('Planificación estratégica', 1);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('Gestión financiera', 1);
-    
-        -- Infraestructura y servicios públicos
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('Agua potable y saneamiento', 2);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('Recolección de basuras', 2);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('Energía eléctrica', 2);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('Alcantarillado y aguas servidas', 2);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('Gestión de residuos solidos', 2);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('Vías, movilidad y transporte publico ', 2);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('Telecomunicaciones e internet', 2);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('Infraestructura educativa', 2);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('infraestructura de salud', 2);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
-        ('infraestructura practica deportiva', 2);
-        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUE;
-        ('infraestructura recreación familiar', 2);
-    
-        -- Desarrollo urbano y territorial
-        ('Ordenamiento territorial', 3),
-        ('Espacio publico', 3),
-        ('Vivienda', 3),
-        ('Patrimonio y paisaje urbano', 3),
-        ('Zonas verdes', 3),
-        ('Uso del suelo', 3),
-        ('Zonas de parqueo', 3),
-        ('Urbanismo', 3);
-    
-        -- Medio ambiente y sostenibilidad
-        ('Calidad del aire', 4),
-        ('Calidad del agua', 4),
-        ('Biodiversidad y áreas verdes', 4),
-        ('Gestión ambiental', 4),
-        ('Cambio climático', 4),
-        ('Contaminación por ruido', 4);
-    
-        -- Desarrollo social y bienestar
-        ('Calidad de la salud', 5),
-        ('Calidad de la educación', 5),
-        ('Seguridad y convivencia', 5),
-        ('Cultura y deporte', 5),
-        ('Recreación y esparcimiento familiar', 5),
-        ('Recreación y esparcimiento adulto mayor', 5),
-        ('Inclusión social', 5),
-        ('Empleo y desarrollo económico', 5);
-    
-        -- Desarrollo económico y competitividad
-        ('Innovación y tecnología', 6),
-        ('Emprendimiento y empresariado', 6),
-        ('Actividad económica licita', 6),
-        ('Turismo', 6),
-        ('Inversión extranjera', 6),
-        ('Uso de la inteligencia artificial', 6);
-    
-        -- Calidad de vida en general
-        ('Satisfacción ciudadana', 7),
-        ('Salud y bienestar', 7),
-        ('Seguridad alimentaria', 7),
-        ('Empleo de calidad', 7),
-        ('Vivienda adecuada', 7),
-        ('Estabilidad económica familiar', 7),
-        ('Salud física', 7),
-        ('Salud mental', 7),
-        ('Ambientes saludables', 7),
-        ('Inclusión educativa', 7),
-        ('Confianza y solidaridad', 7),
-        ('Ambiente sano', 7),
-        ('Vida cultural de calidad', 7),
-        ('Recreación y esparcimiento de calidad', 7),
-        ('Seguridad humana', 7);
-    
-        -- Vulneración del bienestar social y la convivencia ciudadana
-        ('Acciones contra la violencia familiar', 8),
-        ('Acciones contra la violencia sexual', 8),
-        ('Acciones contra la violencia sexual', 8),
-        ('Acciones contra la drogadicción', 8),
-        ('Acciones contra el alcoholismo', 8),
-        ('Acciones contra el tabaquismo', 8),
-        ('Acciones contra la inseguridad ciudadana', 8),
-        ('Acciones contra la inseguridad vial', 8),
-        ('Acciones contra el desamparo de adultos mayores', 8),
-        ('Acciones contra la contaminación ambiental y acustica', 8),
-        ('Acciones contra la ocupación del espacio público', 8),
-        ('Acciones contra la pobreza multidimensional', 8),
-        ('Acciones contra la delincuencia común', 8),
-        ('Acciones contra la corrupción', 8),
-        ('Acciones contra la falta de respuesta institucional', 8);
-    `);    
+        // 4. Insertar preguntas administrativas desde el archivo SQL
+        const preguntasPath = path.join(__dirname, '..', 'db', 'preguntas-administrativas.sql');
+        const preguntasSQL = fs.readFileSync(preguntasPath, 'utf8');
+
+        // Mejorar el procesamiento del SQL
+        const cleanSQL = preguntasSQL
+            .replace(/\r\n/g, '\n') // Normalizar saltos de línea
+            .replace(/\n\s*\n/g, '\n') // Eliminar líneas vacías múltiples
+            .trim();
+
+        // Dividir el SQL en sentencias individuales
+        const statements = cleanSQL.split(';')
+            .map(stmt => stmt.trim())
+            .filter(stmt => stmt.length > 0);
+
+        console.log(`Procesando ${statements.length} sentencias SQL...`);
+
+        // Iniciar transacción
+        const client = await req.db.connect();
+        try {
+            await client.query('BEGIN');
+            
+            for (let i = 0; i < statements.length; i++) {
+                const statement = statements[i];
+                if (statement.trim()) {
+                    try {
+                        await client.query(statement);
+                        console.log(`✅ Sentencia ${i + 1}/${statements.length} ejecutada`);
+                    } catch (error) {
+                        console.error(`❌ Error en sentencia ${i + 1}:`, statement.substring(0, 50) + '...');
+                        console.error('Error:', error.message);
+                        throw error;
+                    }
+                }
+            }
+            
+            await client.query('COMMIT');
+            console.log('✅ Preguntas administrativas insertadas correctamente');
+        } catch (error) {
+            await client.query('ROLLBACK');
+            console.error('❌ Error al insertar preguntas administrativas:', error);
+            throw error;
+        } finally {
+            client.release();
+        }   
         
         console.log('✅ Datos iniciales insertados');
         
