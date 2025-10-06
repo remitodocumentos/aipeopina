@@ -1,9 +1,10 @@
-// routes/admin.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');
 const authMiddleware = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
+const fs = require('fs'); // 👈 Agregar esta línea
+const path = require('path'); // 👈 Agregar esta línea
 
 // Página de login
 router.get('/login', (req, res) => {
@@ -11,7 +12,6 @@ router.get('/login', (req, res) => {
 });
 
 // Procesar login
-
 router.post('/login', (req, res) => {
     const { username, password } = req.body;
     
@@ -268,9 +268,6 @@ router.delete('/secciones/:id', authMiddleware.isAuthenticated, async (req, res)
     }
 });
 
-// Para resetear base de datos y restablecer datos iniciales
-// ... (rutas existentes)
-
 // Página de confirmación para resetear base de datos
 router.get('/resetear-db', authMiddleware.isAuthenticated, (req, res) => {
     res.render('admin/resetear-db', { 
@@ -279,7 +276,6 @@ router.get('/resetear-db', authMiddleware.isAuthenticated, (req, res) => {
         success: null
     });
 });
-
 
 // Procesar reseteo de base de datos
 router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => {
@@ -359,7 +355,7 @@ router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => 
         
         console.log('✅ Tablas recreadas');
         
-        // 3. Insertar datos iniciales totales desde seeds
+        // 3. Insertar datos iniciales básicos
         await req.db.query(`
             -- Insertar funcionarios
             INSERT INTO funcionarios (nombre, cargo, seccion) VALUES 
@@ -368,9 +364,9 @@ router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => 
             ('Alfredo Charry Medina', 'Secretario', 'Secretaria de hacienda'),
             ('Ana Maria Conde Garzon', 'Secretaria', 'Secretaria de protección social'),
             ('Alexander Pulecio Charry', 'Secretario', 'Secretaria de planeación'),
-            ('Daniela Ramirez Chavarro', 'Secretaria', 'Secretaria de infraestructura'),
+            ('Daniela Ramirez Chavarro', 'Secretario', 'Secretaria de infraestructura'),
             ('Javier Charry Bonilla', 'Secretario', 'Secretaria de desarrollo económico'),
-            ('Maria Ximena Martin Charry', 'Secretaria', 'Secretaria de tránsito'),
+            ('Maria Ximena Martin Charry', 'Secretario', 'Secretaria de tránsito'),
             ('Joan Orlando Garay Diaz', 'Inspector', 'Inspección de policía'),
             ('Helenohora Llanos Diaz', 'Comisaria', 'Comisaria de familia');
             
@@ -400,8 +396,10 @@ router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => 
             ('Desarrollo económico y competitividad'),
             ('Calidad de vida en general'),
             ('Vulneración del bienestar social y la convivencia ciudadana');
-            `);
-
+        `);
+        
+        console.log('✅ Datos básicos insertados');
+        
         // 4. Insertar preguntas administrativas desde el archivo SQL
         const preguntasPath = path.join(__dirname, '..', 'db', 'preguntas-administrativas.sql');
         const preguntasSQL = fs.readFileSync(preguntasPath, 'utf8');
@@ -446,9 +444,7 @@ router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => 
             throw error;
         } finally {
             client.release();
-        }   
-        
-        console.log('✅ Datos iniciales insertados');
+        }
         
         res.render('admin/resetear-db', { 
             title: 'Resetear Base de Datos',
