@@ -405,23 +405,38 @@ router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => 
         await req.db.query(`
         -- Gestión y administración pública
         INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES 
-        ('Eficiencia administrativa', 1),
-        ('Transparencia y rendición de cuentas', 1),
-        ('Participación ciudadana', 1),
-        ('Planificación estratégica', 1),
+        ('Eficiencia administrativa', 1);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
+        ('Transparencia y rendición de cuentas', 1);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
+        ('Participación ciudadana', 1);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
+        ('Planificación estratégica', 1);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
         ('Gestión financiera', 1);
     
         -- Infraestructura y servicios públicos
-        ('Agua potable y saneamiento', 2),
-        ('Recolección de basuras', 2),
-        ('Energía eléctrica', 2),
-        ('Alcantarillado y aguas servidas', 2),
-        ('Gestión de residuos solidos', 2),
-        ('Vías, movilidad y transporte publico ', 2),
-        ('Telecomunicaciones e internet', 2),
-        ('Infraestructura educativa', 2),
-        ('infraestructura de salud', 2),
-        ('infraestructura practica deportiva', 2),
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
+        ('Agua potable y saneamiento', 2);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
+        ('Recolección de basuras', 2);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
+        ('Energía eléctrica', 2);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
+        ('Alcantarillado y aguas servidas', 2);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
+        ('Gestión de residuos solidos', 2);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
+        ('Vías, movilidad y transporte publico ', 2);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
+        ('Telecomunicaciones e internet', 2);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
+        ('Infraestructura educativa', 2);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
+        ('infraestructura de salud', 2);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
+        ('infraestructura practica deportiva', 2);
+        INSERT INTO preguntas_administrativas (texto, seccion_id) VALUE;
         ('infraestructura recreación familiar', 2);
     
         -- Desarrollo urbano y territorial
