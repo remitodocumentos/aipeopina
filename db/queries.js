@@ -13,6 +13,11 @@ module.exports.registrarParticipante = async (dispositivo_id, nombre) => {
         console.log('Dispositivo ID:', dispositivo_id);
         console.log('Nombre:', nombre);
         
+        // Validar que dispositivo_id no sea nulo o vacío
+        if (!dispositivo_id || dispositivo_id.trim() === '') {
+            throw new Error('El ID del dispositivo es requerido');
+        }
+        
         // Verificar si ya existe un participante con ese dispositivo_id
         const existente = await pool.query(
             'SELECT * FROM participantes WHERE dispositivo_id = $1',
@@ -22,7 +27,7 @@ module.exports.registrarParticipante = async (dispositivo_id, nombre) => {
         if (existente.rows.length > 0) {
             console.log('Participante ya existe, actualizando nombre...');
             // Actualizar el nombre si se proporcionó
-            if (nombre) {
+            if (nombre && nombre.trim() !== '') {
                 await pool.query(
                     'UPDATE participantes SET nombre = $1 WHERE dispositivo_id = $2',
                     [nombre, dispositivo_id]
@@ -34,7 +39,7 @@ module.exports.registrarParticipante = async (dispositivo_id, nombre) => {
             // Insertar nuevo participante
             const result = await pool.query(
                 'INSERT INTO participantes (dispositivo_id, nombre) VALUES ($1, $2) RETURNING id',
-                [dispositivo_id, nombre || null]
+                [dispositivo_id, nombre && nombre.trim() !== '' ? nombre : null]
             );
             return result;
         }
