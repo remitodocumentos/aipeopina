@@ -1,3 +1,4 @@
+//db/consultas.js
 // Registrar participante
 module.exports.registrarParticipante = async (dispositivo_id, nombre) => {
     try {

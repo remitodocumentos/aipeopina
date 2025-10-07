@@ -1,3 +1,4 @@
+-- db/seeds.sql
 -- Insertar funcionarios
 INSERT INTO funcionarios (nombre, cargo, seccion) VALUES 
 ('Luis Angel Ramirez Vargas', 'Alcalde', 'Despacho del alcalde'),

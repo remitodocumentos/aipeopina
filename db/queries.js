@@ -1,3 +1,4 @@
+//db/queries.js
 const { Pool } = require('pg');
 require('dotenv').config();
 
@@ -330,3 +331,7 @@ module.exports.getResultadosAdministrativos = async () => {
         throw error;
     }
 };
+
+// AGREGAR estas líneas al final del archivo: DEEPSEEK
+module.exports.pool = pool;
+module.exports.query = (text, params) => pool.query(text, params);

@@ -1,10 +1,12 @@
+//routes/admin.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');
+const { pool } = require('../db/queries'); // 👈 AGREGAR ESTA LÍNEA
 const authMiddleware = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
-const fs = require('fs'); // 👈 Agregar esta línea
-const path = require('path'); // 👈 Agregar esta línea
+const fs = require('fs');
+const path = require('path');
 
 // Página de login
 router.get('/login', (req, res) => {
@@ -277,151 +279,180 @@ router.get('/resetear-db', authMiddleware.isAuthenticated, (req, res) => {
     });
 });
 
-// Procesar reseteo de base de datos
+// Procesar reseteo de base de datos - VERSION CORREGIDA
 router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => {
+    const client = await pool.connect(); // 👈 USAR pool DIRECTAMENTE
+    
     try {
         console.log('Iniciando reseteo de la base de datos...');
+        await client.query('BEGIN');
         
         // 1. Eliminar todas las tablas en orden inverso para evitar errores de claves foráneas
-        await req.db.query('DROP TABLE IF EXISTS respuestas_administrativas CASCADE');
-        await req.db.query('DROP TABLE IF EXISTS respuestas_funcionarios CASCADE');
-        await req.db.query('DROP TABLE IF EXISTS participantes CASCADE');
-        await req.db.query('DROP TABLE IF EXISTS preguntas_administrativas CASCADE');
-        await req.db.query('DROP TABLE IF EXISTS preguntas_funcionarios CASCADE');
-        await req.db.query('DROP TABLE IF EXISTS secciones_administrativas CASCADE');
-        await req.db.query('DROP TABLE IF EXISTS funcionarios CASCADE');
-        await req.db.query('DROP TABLE IF EXISTS session CASCADE');
+        const dropQueries = [
+            'DROP TABLE IF EXISTS respuestas_administrativas CASCADE',
+            'DROP TABLE IF EXISTS respuestas_funcionarios CASCADE',
+            'DROP TABLE IF EXISTS participantes CASCADE',
+            'DROP TABLE IF EXISTS preguntas_administrativas CASCADE',
+            'DROP TABLE IF EXISTS preguntas_funcionarios CASCADE',
+            'DROP TABLE IF EXISTS secciones_administrativas CASCADE',
+            'DROP TABLE IF EXISTS funcionarios CASCADE',
+            'DROP TABLE IF EXISTS session CASCADE'
+        ];
         
+        for (const query of dropQueries) {
+            await client.query(query);
+        }
         console.log('✅ Tablas eliminadas');
         
-        // 2. Volver a crear las tablas
-        await req.db.query(`
-            CREATE TABLE funcionarios (
-                id SERIAL PRIMARY KEY,
-                nombre VARCHAR(100) NOT NULL,
-                cargo VARCHAR(100) NOT NULL,
-                seccion VARCHAR(100) NOT NULL
-            );
+        // 2. Volver a crear las tablas usando el archivo migrations.sql
+        const migrationsPath = path.join(__dirname, '..', 'db', 'migrations.sql');
+        if (fs.existsSync(migrationsPath)) {
+            const migrationsSQL = fs.readFileSync(migrationsPath, 'utf8');
+            const statements = migrationsSQL.split(';').filter(stmt => stmt.trim());
             
-            CREATE TABLE preguntas_funcionarios (
-                id SERIAL PRIMARY KEY,
-                texto VARCHAR(255) NOT NULL,
-                categoria VARCHAR(100) NOT NULL
-            );
-            
-            CREATE TABLE secciones_administrativas (
-                id SERIAL PRIMARY KEY,
-                nombre VARCHAR(100) NOT NULL
-            );
-            
-            CREATE TABLE preguntas_administrativas (
-                id SERIAL PRIMARY KEY,
-                texto VARCHAR(255) NOT NULL,
-                seccion_id INTEGER REFERENCES secciones_administrativas(id)
-            );
-            
-            CREATE TABLE participantes (
-                id SERIAL PRIMARY KEY,
-                dispositivo_id VARCHAR(255) NOT NULL UNIQUE,
-                nombre VARCHAR(100),
-                fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-            
-            CREATE TABLE session (
-                sid varchar NOT NULL COLLATE "default",
-                sess json NOT NULL,
-                expire timestamp(6) NOT NULL,
-                PRIMARY KEY (sid)
-            );
-            
-            CREATE TABLE respuestas_funcionarios (
-                id SERIAL PRIMARY KEY,
-                funcionario_id INTEGER NOT NULL REFERENCES funcionarios(id),
-                pregunta_id INTEGER NOT NULL REFERENCES preguntas_funcionarios(id),
-                respuesta VARCHAR(20) NOT NULL CHECK (respuesta IN ('excelente', 'bueno', 'regular', 'deficiente', 'malo')),
-                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                participante_id INTEGER REFERENCES participantes(id)
-            );
-            
-            CREATE TABLE respuestas_administrativas (
-                id SERIAL PRIMARY KEY,
-                seccion_id INTEGER NOT NULL REFERENCES secciones_administrativas(id),
-                pregunta_id INTEGER NOT NULL REFERENCES preguntas_administrativas(id),
-                respuesta VARCHAR(20) NOT NULL CHECK (respuesta IN ('excelente', 'bueno', 'regular', 'deficiente', 'malo')),
-                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                participante_id INTEGER REFERENCES participantes(id)
-            );
-        `);
+            for (const statement of statements) {
+                if (statement.trim()) {
+                    await client.query(statement);
+                }
+            }
+            console.log('✅ Migraciones ejecutadas');
+        } else {
+            console.log('⚠️ Archivo migrations.sql no encontrado, creando tablas manualmente');
+            // Crear tablas manualmente si no existe el archivo
+            await client.query(`
+                CREATE TABLE funcionarios (
+                    id SERIAL PRIMARY KEY,
+                    nombre VARCHAR(100) NOT NULL,
+                    cargo VARCHAR(100) NOT NULL,
+                    seccion VARCHAR(100) NOT NULL
+                );
+                
+                CREATE TABLE preguntas_funcionarios (
+                    id SERIAL PRIMARY KEY,
+                    texto VARCHAR(255) NOT NULL,
+                    categoria VARCHAR(100) NOT NULL
+                );
+                
+                CREATE TABLE secciones_administrativas (
+                    id SERIAL PRIMARY KEY,
+                    nombre VARCHAR(100) NOT NULL
+                );
+                
+                CREATE TABLE preguntas_administrativas (
+                    id SERIAL PRIMARY KEY,
+                    texto VARCHAR(255) NOT NULL,
+                    seccion_id INTEGER REFERENCES secciones_administrativas(id)
+                );
+                
+                CREATE TABLE participantes (
+                    id SERIAL PRIMARY KEY,
+                    dispositivo_id VARCHAR(255) NOT NULL UNIQUE,
+                    nombre VARCHAR(100),
+                    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE session (
+                    sid varchar NOT NULL COLLATE "default",
+                    sess json NOT NULL,
+                    expire timestamp(6) NOT NULL,
+                    PRIMARY KEY (sid)
+                );
+                
+                CREATE TABLE respuestas_funcionarios (
+                    id SERIAL PRIMARY KEY,
+                    funcionario_id INTEGER NOT NULL REFERENCES funcionarios(id),
+                    pregunta_id INTEGER NOT NULL REFERENCES preguntas_funcionarios(id),
+                    respuesta VARCHAR(20) NOT NULL CHECK (respuesta IN ('excelente', 'bueno', 'regular', 'deficiente', 'malo')),
+                    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    participante_id INTEGER REFERENCES participantes(id)
+                );
+                
+                CREATE TABLE respuestas_administrativas (
+                    id SERIAL PRIMARY KEY,
+                    seccion_id INTEGER NOT NULL REFERENCES secciones_administrativas(id),
+                    pregunta_id INTEGER NOT NULL REFERENCES preguntas_administrativas(id),
+                    respuesta VARCHAR(20) NOT NULL CHECK (respuesta IN ('excelente', 'bueno', 'regular', 'deficiente', 'malo')),
+                    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    participante_id INTEGER REFERENCES participantes(id)
+                );
+            `);
+        }
         
         console.log('✅ Tablas recreadas');
         
-        // 3. Insertar datos iniciales básicos
-        await req.db.query(`
-            -- Insertar funcionarios
-            INSERT INTO funcionarios (nombre, cargo, seccion) VALUES 
-            ('Luis Angel Ramirez Vargas', 'Alcalde', 'Despacho del alcalde'),
-            ('Jairo Garzón Conde', 'Secretario', 'Secretaria general y de gobierno'),
-            ('Alfredo Charry Medina', 'Secretario', 'Secretaria de hacienda'),
-            ('Ana Maria Conde Garzon', 'Secretaria', 'Secretaria de protección social'),
-            ('Alexander Pulecio Charry', 'Secretario', 'Secretaria de planeación'),
-            ('Daniela Ramirez Chavarro', 'Secretario', 'Secretaria de infraestructura'),
-            ('Javier Charry Bonilla', 'Secretario', 'Secretaria de desarrollo económico'),
-            ('Maria Ximena Martin Charry', 'Secretario', 'Secretaria de tránsito'),
-            ('Joan Orlando Garay Diaz', 'Inspector', 'Inspección de policía'),
-            ('Helenohora Llanos Diaz', 'Comisaria', 'Comisaria de familia');
+        // 3. Insertar datos iniciales básicos usando el archivo seeds.sql
+        const seedsPath = path.join(__dirname, '..', 'db', 'seeds.sql');
+        if (fs.existsSync(seedsPath)) {
+            const seedsSQL = fs.readFileSync(seedsPath, 'utf8');
+            const statements = seedsSQL.split(';').filter(stmt => stmt.trim());
             
-            -- Insertar preguntas para funcionarios
-            INSERT INTO preguntas_funcionarios (texto, categoria) VALUES 
-            ('Integridad y ética', 'Personal'),
-            ('Respeto, dignidad y decoro', 'Personal'),
-            ('Aptitud y honestidad', 'Personal'),
-            ('Veracidad y cumplimiento', 'Personal'),
-            ('Comunicación y empatía', 'Personal'),
-            ('Liderazgo y gestión de equipos', 'Profesional'),
-            ('Capacidad para resolver problemas', 'Profesional'),
-            ('Transparencia y eficiencia en la toma de decisiones', 'Profesional'),
-            ('Eficiencia en la gestión de los recursos', 'Desempeño'),
-            ('Cumplimiento de metas', 'Desempeño'),
-            ('Proyectos estratégicos con resultados concretos', 'Desempeño'),
-            ('Ejercicio adecuado del cargo', 'Desempeño'),
-            ('Uso adecuado del tiempo de trabajo', 'Desempeño');
-            
-            -- Insertar secciones administrativas
-            INSERT INTO secciones_administrativas (nombre) VALUES 
-            ('Gestión y administración pública'),
-            ('Infraestructura y servicios públicos'),
-            ('Desarrollo urbano y territorial'),
-            ('Medio ambiente y sostenibilidad'),
-            ('Desarrollo social y bienestar'),
-            ('Desarrollo económico y competitividad'),
-            ('Calidad de vida en general'),
-            ('Vulneración del bienestar social y la convivencia ciudadana');
-        `);
+            for (const statement of statements) {
+                if (statement.trim()) {
+                    await client.query(statement);
+                }
+            }
+            console.log('✅ Datos básicos insertados');
+        } else {
+            console.log('⚠️ Archivo seeds.sql no encontrado, insertando datos manualmente');
+            // Insertar datos manualmente si no existe el archivo
+            await client.query(`
+                -- Insertar funcionarios
+                INSERT INTO funcionarios (nombre, cargo, seccion) VALUES 
+                ('Luis Angel Ramirez Vargas', 'Alcalde', 'Despacho del alcalde'),
+                ('Jairo Garzón Conde', 'Secretario', 'Secretaria general y de gobierno'),
+                ('Alfredo Charry Medina', 'Secretario', 'Secretaria de hacienda'),
+                ('Ana Maria Conde Garzon', 'Secretaria', 'Secretaria de protección social'),
+                ('Alexander Pulecio Charry', 'Secretario', 'Secretaria de planeación'),
+                ('Daniela Ramirez Chavarro', 'Secretaria', 'Secretaria de infraestructura'),
+                ('Javier Charry Bonilla', 'Secretario', 'Secretaria de desarrollo económico'),
+                ('Maria Ximena Martin Charry', 'Secretaria', 'Secretaria de tránsito'),
+                ('Joan Orlando Garay Diaz', 'Inspector', 'Inspección de policía'),
+                ('Helenohora Llanos Diaz', 'Comisaria', 'Comisaria de familia');
+                
+                -- Insertar preguntas para funcionarios
+                INSERT INTO preguntas_funcionarios (texto, categoria) VALUES 
+                ('Integridad y ética', 'Personal'),
+                ('Respeto, dignidad y decoro', 'Personal'),
+                ('Aptitud y honestidad', 'Personal'),
+                ('Veracidad y cumplimiento', 'Personal'),
+                ('Comunicación y empatía', 'Personal'),
+                ('Liderazgo y gestión de equipos', 'Profesional'),
+                ('Capacidad para resolver problemas', 'Profesional'),
+                ('Transparencia y eficiencia en la toma de decisiones', 'Profesional'),
+                ('Eficiencia en la gestión de los recursos', 'Desempeño'),
+                ('Cumplimiento de metas', 'Desempeño'),
+                ('Proyectos estratégicos con resultados concretos', 'Desempeño'),
+                ('Ejercicio adecuado del cargo', 'Desempeño'),
+                ('Uso adecuado del tiempo de trabajo', 'Desempeño');
+                
+                -- Insertar secciones administrativas
+                INSERT INTO secciones_administrativas (nombre) VALUES 
+                ('Gestión y administración pública'),
+                ('Infraestructura y servicios públicos'),
+                ('Desarrollo urbano y territorial'),
+                ('Medio ambiente y sostenibilidad'),
+                ('Desarrollo social y bienestar'),
+                ('Desarrollo económico y competitividad'),
+                ('Calidad de vida en general'),
+                ('Vulneración del bienestar social y la convivencia ciudadana');
+            `);
+        }
         
-        console.log('✅ Datos básicos insertados');
-        
-        // 4. Insertar preguntas administrativas desde el archivo SQL
+        // 4. Insertar preguntas administrativas desde el archivo SQL si existe
         const preguntasPath = path.join(__dirname, '..', 'db', 'preguntas-administrativas.sql');
-        const preguntasSQL = fs.readFileSync(preguntasPath, 'utf8');
+        if (fs.existsSync(preguntasPath)) {
+            const preguntasSQL = fs.readFileSync(preguntasPath, 'utf8');
+            const cleanSQL = preguntasSQL
+                .replace(/\r\n/g, '\n')
+                .replace(/\n\s*\n/g, '\n')
+                .trim();
 
-        // Mejorar el procesamiento del SQL
-        const cleanSQL = preguntasSQL
-            .replace(/\r\n/g, '\n') // Normalizar saltos de línea
-            .replace(/\n\s*\n/g, '\n') // Eliminar líneas vacías múltiples
-            .trim();
+            const statements = cleanSQL.split(';')
+                .map(stmt => stmt.trim())
+                .filter(stmt => stmt.length > 0);
 
-        // Dividir el SQL en sentencias individuales
-        const statements = cleanSQL.split(';')
-            .map(stmt => stmt.trim())
-            .filter(stmt => stmt.length > 0);
+            console.log(`Procesando ${statements.length} sentencias SQL...`);
 
-        console.log(`Procesando ${statements.length} sentencias SQL...`);
-
-        // Iniciar transacción
-        const client = await req.db.connect();
-        try {
-            await client.query('BEGIN');
-            
             for (let i = 0; i < statements.length; i++) {
                 const statement = statements[i];
                 if (statement.trim()) {
@@ -435,16 +466,12 @@ router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => 
                     }
                 }
             }
-            
-            await client.query('COMMIT');
             console.log('✅ Preguntas administrativas insertadas correctamente');
-        } catch (error) {
-            await client.query('ROLLBACK');
-            console.error('❌ Error al insertar preguntas administrativas:', error);
-            throw error;
-        } finally {
-            client.release();
+        } else {
+            console.log('⚠️ Archivo preguntas-administrativas.sql no encontrado');
         }
+        
+        await client.query('COMMIT');
         
         res.render('admin/resetear-db', { 
             title: 'Resetear Base de Datos',
@@ -453,12 +480,15 @@ router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => 
         });
         
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error('Error al resetear la base de datos:', error);
         res.render('admin/resetear-db', { 
             title: 'Resetear Base de Datos',
             error: 'Error al resetear la base de datos: ' + error.message,
             success: null
         });
+    } finally {
+        client.release();
     }
 });
 

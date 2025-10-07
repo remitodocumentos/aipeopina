@@ -1,3 +1,4 @@
+-- db/preguntas-administrativas.sql
 -- Preguntas administrativas - Gestión y administración pública
 INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES 
 ('Eficiencia administrativa', 1),
