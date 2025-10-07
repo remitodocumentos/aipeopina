@@ -3,27 +3,7 @@ const router = express.Router();
 const db = require('../db/queries');
 const participacionMiddleware = require('../middleware/participacion');
 
-// Mostrar formulario de funcionarios
-router.get('/funcionarios', 
-    participacionMiddleware.verificarParticipacion,
-    participacionMiddleware.generarDispositivoId,
-    async (req, res) => {
-        try {
-            const funcionarios = await db.getFuncionarios();
-            const preguntas = await db.getPreguntasFuncionarios();
-            res.render('funcionarios', { 
-                funcionarios, 
-                preguntas,
-                dispositivoId: req.dispositivoId 
-            });
-        } catch (error) {
-            console.error(error);
-            res.status(500).send('Error al cargar el formulario');
-        }
-    }
-);
-
-// Guardar respuestas de funcionarios
+// Página de evaluación de funcionarios
 router.get('/funcionarios', 
     participacionMiddleware.verificarParticipacion,
     participacionMiddleware.generarDispositivoId,
@@ -41,7 +21,28 @@ router.get('/funcionarios',
             res.status(500).send('Error al cargar el formulario de funcionarios');
         }
     }
-);        
+);
+
+// Procesar respuestas de funcionarios - CORREGIDO: agregar async
+router.post('/funcionarios', async (req, res) => {
+    try {
+        console.log('=== DEBUG GUARDAR RESPUESTAS FUNCIONARIOS ===');
+        console.log('Cuerpo de la petición:', req.body);
+        
+        const { nombre, dispositivo_id } = req.body;
+        
+        // Validar que dispositivo_id esté presente
+        if (!dispositivo_id) {
+            console.error('Error: dispositivo_id no está presente en la petición');
+            return res.status(400).send(`
+                <div style="max-width: 600px; margin: 50px auto; padding: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; color: #721c24;">
+                    <h2>Error de validación</h2>
+                    <p>No se pudo identificar tu dispositivo. Por favor, recarga la página e intenta nuevamente.</p>
+                    <a href="/evaluacion/funcionarios" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">Volver a intentarlo</a>
+                </div>
+            `);
+        }
+        
         // Registrar participante
         console.log('Registrando participante...');
         const participanteResult = await db.registrarParticipante(dispositivo_id, nombre);
@@ -67,7 +68,7 @@ router.get('/funcionarios',
     }
 });
 
-// Mostrar formulario administrativo
+// Página de evaluación administrativa
 router.get('/administrativo', 
     participacionMiddleware.verificarParticipacion,
     participacionMiddleware.generarDispositivoId,
@@ -82,15 +83,20 @@ router.get('/administrativo',
             });
         } catch (error) {
             console.error(error);
-            res.status(500).send('Error al cargar el formulario');
+            res.status(500).send('Error al cargar el formulario administrativo');
         }
     }
 );
 
-// Guardar respuestas administrativas
+// Procesar respuestas administrativas - CORREGIDO: agregar async
 router.post('/administrativo', async (req, res) => {
     try {
         const { nombre, dispositivo_id } = req.body;
+        
+        // Validar que dispositivo_id esté presente
+        if (!dispositivo_id) {
+            return res.status(400).send('Error: dispositivo_id no está presente en la petición');
+        }
         
         // Registrar participante (si no se registró en la primera parte)
         const participanteResult = await db.registrarParticipante(dispositivo_id, nombre);
@@ -101,8 +107,8 @@ router.post('/administrativo', async (req, res) => {
         
         res.redirect('/resultados');
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Error al guardar respuestas');
+        console.error('Error al guardar respuestas administrativas:', error);
+        res.status(500).send('Error al guardar respuestas administrativas');
     }
 });
 
