@@ -55,8 +55,8 @@ router.post('/funcionarios', async (req, res) => {
         await db.saveRespuestasFuncionarios(req.body, participanteId);
         console.log('Respuestas guardadas correctamente');
         
-        // Redirigir a la página de resultados
-        res.redirect('/resultados');
+        // Redirigir a la página de confirmación
+        res.redirect('/evaluacion/confirmacion');
     } catch (error) {
         console.error('Error al guardar respuestas de funcionarios:', error);
         res.status(500).send(`
@@ -68,6 +68,11 @@ router.post('/funcionarios', async (req, res) => {
             </div>
         `);
     }
+});
+
+// Página de confirmación después de evaluar funcionarios
+router.get('/confirmacion', (req, res) => {
+    res.render('confirmacion');
 });
 
 // Página de evaluación administrativa
