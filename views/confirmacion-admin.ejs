@@ -1,0 +1,80 @@
+<%- include('partials/header') %>
+
+<div class="container">
+    <div class="confirmacion-container">
+        <div class="icono-exito">✓</div>
+        <h1>¡Evaluación Administrativa Completada!</h1>
+        <p>Todas tus respuestas han sido guardadas exitosamente.</p>
+        <p>Gracias por participar en la evaluación municipal.</p>
+        
+        <div class="acciones">
+            <a href="/resultados" class="btn-primary">
+                Ver Resultados Completos
+            </a>
+            <a href="/" class="btn-secondary">
+                Volver al Inicio
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .confirmacion-container {
+        max-width: 600px;
+        margin: 100px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .icono-exito {
+        font-size: 4rem;
+        color: #28a745;
+        margin-bottom: 20px;
+    }
+    
+    .confirmacion-container h1 {
+        color: #2c5aa0;
+        margin-bottom: 20px;
+    }
+    
+    .acciones {
+        margin-top: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .btn-primary, .btn-secondary {
+        display: inline-block;
+        padding: 15px 30px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background: #2c5aa0;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #1a3a6e;
+        transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+</style>
+
+<%- include('partials/footer') %>

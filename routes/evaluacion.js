@@ -1,10 +1,9 @@
-// routes/evaluacion.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');
 const participacionMiddleware = require('../middleware/participacion');
 
-// Página de evaluación de funcionarios
+// Middleware para verificar si el dispositivo ya ha participado
 router.get('/funcionarios', 
     participacionMiddleware.verificarParticipacion,
     participacionMiddleware.generarDispositivoId,
@@ -18,8 +17,8 @@ router.get('/funcionarios',
                 dispositivoId: req.dispositivoId 
             });
         } catch (error) {
-            console.error(error);
-            res.status(500).send('Error al cargar el formulario de funcionarios');
+            console.error('Error al cargar el formulario de funcionarios:', error);
+            res.status(500).send('Error al cargar el formulario');
         }
     }
 );
@@ -30,18 +29,15 @@ router.post('/funcionarios', async (req, res) => {
         console.log('=== DEBUG GUARDAR RESPUESTAS FUNCIONARIOS ===');
         console.log('Cuerpo de la petición:', req.body);
         
-        const { nombre, dispositivo_id } = req.body;
+        const { nombre, dispositivo_id, tipo_participacion } = req.body;
         
         // Validar que dispositivo_id esté presente
         if (!dispositivo_id) {
             console.error('Error: dispositivo_id no está presente en la petición');
-            return res.status(400).send(`
-                <div style="max-width: 600px; margin: 50px auto; padding: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; color: #721c24;">
-                    <h2>Error de validación</h2>
-                    <p>No se pudo identificar tu dispositivo. Por favor, recarga la página e intenta nuevamente.</p>
-                    <a href="/evaluacion/funcionarios" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">Volver a intentarlo</a>
-                </div>
-            `);
+            return res.status(400).json({
+                success: false,
+                message: 'No se pudo identificar tu dispositivo. Por favor, recarga la página e intenta nuevamente.'
+            });
         }
         
         // Registrar participante
@@ -59,23 +55,19 @@ router.post('/funcionarios', async (req, res) => {
         res.redirect('/evaluacion/confirmacion');
     } catch (error) {
         console.error('Error al guardar respuestas de funcionarios:', error);
-        res.status(500).send(`
-            <div style="max-width: 600px; margin: 50px auto; padding: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; color: #721c24;">
-                <h2>Error al guardar respuestas</h2>
-                <p>Ha ocurrido un error al guardar tus respuestas. Por favor, intenta nuevamente.</p>
-                <p><strong>Detalles del error:</strong> ${error.message}</p>
-                <a href="/evaluacion/funcionarios" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">Volver a intentarlo</a>
-            </div>
-        `);
+        res.status(500).json({
+            success: false,
+            message: 'Error al guardar tus respuestas: ' + error.message
+        });
     }
 });
 
-// Página de confirmación después de evaluar funcionarios
+// Página de confirmación
 router.get('/confirmacion', (req, res) => {
     res.render('confirmacion');
 });
 
-// Página de evaluación administrativa
+// Middleware para verificar si el dispositivo ya ha participado
 router.get('/administrativo', 
     participacionMiddleware.verificarParticipacion,
     participacionMiddleware.generarDispositivoId,
@@ -89,20 +81,23 @@ router.get('/administrativo',
                 dispositivoId: req.dispositivoId 
             });
         } catch (error) {
-            console.error(error);
-            res.status(500).send('Error al cargar el formulario administrativo');
+            console.error('Error al cargar el formulario administrativo:', error);
+            res.status(500).send('Error al cargar el formulario');
         }
     }
 );
 
-// Procesar respuestas administrativas
+// ESTE ES EL CÓDIGO DEL PASO 4 - PROCESAR RESPUESTAS ADMINISTRATIVAS
 router.post('/administrativo', async (req, res) => {
     try {
         const { nombre, dispositivo_id } = req.body;
         
         // Validar que dispositivo_id esté presente
         if (!dispositivo_id) {
-            return res.status(400).send('Error: dispositivo_id no está presente en la petición');
+            return res.status(400).json({
+                success: false,
+                message: 'No se pudo identificar tu dispositivo. Por favor, recarga la página e intenta nuevamente.'
+            });
         }
         
         // Registrar participante (si no se registró en la primera parte)
@@ -112,12 +107,20 @@ router.post('/administrativo', async (req, res) => {
         // Guardar respuestas con ID del participante
         await db.saveRespuestasAdministrativas(req.body, participanteId);
         
-        // Redirigir a la página de resultados
-        res.redirect('/resultados');
+        // Redirigir a la página de confirmación administrativa
+        res.redirect('/evaluacion/confirmacion-admin');
     } catch (error) {
         console.error('Error al guardar respuestas administrativas:', error);
-        res.status(500).send('Error al guardar respuestas administrativas');
+        res.status(500).json({
+            success: false,
+            message: 'Error al guardar tus respuestas: ' + error.message
+        });
     }
+});
+
+// Página de confirmación administrativa
+router.get('/confirmacion-admin', (req, res) => {
+    res.render('confirmacion-admin');
 });
 
 module.exports = router;
