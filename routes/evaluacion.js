@@ -1,3 +1,4 @@
+// routes/evaluacion.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');
@@ -23,7 +24,7 @@ router.get('/funcionarios',
     }
 );
 
-// Procesar respuestas de funcionarios - CORREGIDO: agregar async
+// Procesar respuestas de funcionarios
 router.post('/funcionarios', async (req, res) => {
     try {
         console.log('=== DEBUG GUARDAR RESPUESTAS FUNCIONARIOS ===');
@@ -54,7 +55,8 @@ router.post('/funcionarios', async (req, res) => {
         await db.saveRespuestasFuncionarios(req.body, participanteId);
         console.log('Respuestas guardadas correctamente');
         
-        res.redirect('/evaluacion/administrativo');
+        // Redirigir a la página de resultados
+        res.redirect('/resultados');
     } catch (error) {
         console.error('Error al guardar respuestas de funcionarios:', error);
         res.status(500).send(`
@@ -88,7 +90,7 @@ router.get('/administrativo',
     }
 );
 
-// Procesar respuestas administrativas - CORREGIDO: agregar async
+// Procesar respuestas administrativas
 router.post('/administrativo', async (req, res) => {
     try {
         const { nombre, dispositivo_id } = req.body;
@@ -105,6 +107,7 @@ router.post('/administrativo', async (req, res) => {
         // Guardar respuestas con ID del participante
         await db.saveRespuestasAdministrativas(req.body, participanteId);
         
+        // Redirigir a la página de resultados
         res.redirect('/resultados');
     } catch (error) {
         console.error('Error al guardar respuestas administrativas:', error);

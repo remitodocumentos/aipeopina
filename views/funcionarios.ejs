@@ -90,46 +90,6 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Manejar opciones de participación
-        const anonimoRadio = document.getElementById('anonimo');
-        const conNombreRadio = document.getElementById('con_nombre');
-        const campoNombre = document.getElementById('campo_nombre');
-        const nombreInput = document.getElementById('nombre');
-        
-        anonimoRadio.addEventListener('change', function() {
-            campoNombre.style.display = 'none';
-            nombreInput.value = '';
-        });
-        
-        conNombreRadio.addEventListener('change', function() {
-            campoNombre.style.display = 'block';
-            nombreInput.focus();
-        });
-    });
-    
-    function mostrarSiguiente(actualId) {
-        const actual = document.getElementById(`funcionario-${actualId}`);
-        actual.style.display = 'none';
-        
-        const secciones = document.querySelectorAll('.funcionario-section');
-        let mostrarSiguiente = false;
-        
-        secciones.forEach(seccion => {
-            if (mostrarSiguiente) {
-                seccion.style.display = 'block';
-                mostrarSiguiente = false;
-                
-                // Scroll al inicio de la nueva sección
-                seccion.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else if (seccion.id === `funcionario-${actualId}`) {
-                mostrarSiguiente = true;
-            }
-        });
-    }
-</script>
-
-<script>
 document.addEventListener('DOMContentLoaded', function() {
     // Manejar opciones de participación
     const anonimoRadio = document.getElementById('anonimo');
