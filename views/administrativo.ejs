@@ -22,10 +22,11 @@
             <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nombre completo">
         </div>
         
-        <input type="hidden" name="dispositivo_id" value="<%= dispositivoId %>">
+        <!-- 👇 AGREGAR ESTE CAMPO OCULTO -->
+        <input type="hidden" id="dispositivo_id" name="dispositivo_id" value="<%= dispositivoId %>">
     </div>
     
-    <form action="/evaluacion/administrativo" method="POST">
+    <form action="/evaluacion/administrativo" method="POST" id="administrativo-form">
         <% let preguntasPorSeccion = {}; %>
         <% preguntas.forEach(pregunta => { %>
             <% if (!preguntasPorSeccion[pregunta.seccion_id]) { %>
@@ -76,6 +77,14 @@
         const conNombreRadio = document.getElementById('con_nombre');
         const campoNombre = document.getElementById('campo_nombre');
         const nombreInput = document.getElementById('nombre');
+        const dispositivoIdInput = document.getElementById('dispositivo_id');
+        const form = document.getElementById('administrativo-form');
+        
+        // Asegurarse de que el dispositivo_id esté configurado
+        if (!dispositivoIdInput.value) {
+            dispositivoIdInput.value = generarUUID();
+            console.log('ID de dispositivo generado:', dispositivoIdInput.value);
+        }
         
         anonimoRadio.addEventListener('change', function() {
             campoNombre.style.display = 'none';
@@ -86,6 +95,56 @@
             campoNombre.style.display = 'block';
             nombreInput.focus();
         });
+        
+        // Validar formulario antes de enviar
+        form.addEventListener('submit', function(e) {
+            // Validar que todos los campos de radio estén seleccionados
+            const radioGroups = {};
+            const radioButtons = form.querySelectorAll('input[type="radio"]');
+            
+            radioButtons.forEach(radio => {
+                const name = radio.name;
+                if (!radioGroups[name]) {
+                    radioGroups[name] = false;
+                }
+                if (radio.checked) {
+                    radioGroups[name] = true;
+                }
+            });
+            
+            // Verificar que todos los grupos tengan una selección
+            const allSelected = Object.values(radioGroups).every(selected => selected);
+            
+            if (!allSelected) {
+                e.preventDefault();
+                alert('Por favor, responde todas las preguntas antes de enviar.');
+                return false;
+            }
+            
+            // Asegurarse de que el dispositivo_id esté configurado
+            if (!dispositivoIdInput.value) {
+                dispositivoIdInput.value = generarUUID();
+            }
+            
+            // Mostrar indicador de carga
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enviando...';
+            
+            console.log('Enviando formulario administrativo con dispositivo_id:', dispositivoIdInput.value);
+            console.log('Nombre:', nombreInput.value);
+            
+            return true;
+        });
+        
+        // Función para generar un UUID simple
+        function generarUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
     });
     
     function mostrarSiguienteSeccion(actualId) {

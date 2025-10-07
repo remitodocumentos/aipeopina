@@ -91,22 +91,31 @@ router.get('/administrativo',
 // ESTE ES EL CÓDIGO DEL PASO 4 - PROCESAR RESPUESTAS ADMINISTRATIVAS
 router.post('/administrativo', async (req, res) => {
     try {
+        console.log('=== DEBUG ADMINISTRATIVO ===');
+        console.log('Body recibido:', req.body);
+
         const { nombre, dispositivo_id } = req.body;
         
         // Validar que dispositivo_id esté presente
         if (!dispositivo_id) {
+            console.error('❌ Error: dispositivo_id no presente en la petición');
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo identificar tu dispositivo. Por favor, recarga la página e intenta nuevamente.'
             });
         }
         
+        console.log('✅ Dispositivo ID:', dispositivo_id);
+        console.log('✅ Nombre:', nombre);
+
         // Registrar participante (si no se registró en la primera parte)
         const participanteResult = await db.registrarParticipante(dispositivo_id, nombre);
         const participanteId = participanteResult.rows[0].id;
-        
+        console.log('✅ Participante ID:', participanteId);
+
         // Guardar respuestas con ID del participante
         await db.saveRespuestasAdministrativas(req.body, participanteId);
+        console.log('✅ Respuestas administrativas guardadas');
         
         // Redirigir a la página de confirmación administrativa
         res.redirect('/evaluacion/confirmacion-admin');
