@@ -1,5 +1,5 @@
 //app.js
-// app.js - VERSION CORREGIDA
+// app.js - VERSION CORREGIDA SIN VISTAS ERROR
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
@@ -12,14 +12,13 @@ const pgSession = require('connect-pg-simple')(session);
 const app = express();
 const port = process.env.PORT || 3000;
 
-// 🔐 Render usa proxy HTTPS, esto es obligatorio para que Express detecte el protocolo real
+// 🔐 Render usa proxy HTTPS
 app.set('trust proxy', 1);
 
-// 📦 Configuración de base de datos PostgreSQL en Railway
+// 📦 Configuración de base de datos PostgreSQL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  client_encoding: 'UTF8'
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 // ⚙️ Configuración general
@@ -36,7 +35,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// 🛡️ Configuración de sesión persistente con PostgreSQL - CORREGIDA
+// 🛡️ Configuración de sesión persistente con PostgreSQL
 app.use(session({
   store: new pgSession({
     pool: pool,
@@ -49,13 +48,13 @@ app.use(session({
   name: 'connect.sid',
   cookie: {
     maxAge: 24 * 60 * 60 * 1000, // 24 horas
-    secure: process.env.NODE_ENV === 'production', // 👈 IMPORTANTE: solo true en producción
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: 'lax' // 👈 CAMBIAR de 'none' a 'lax'
+    sameSite: 'lax'
   }
 }));
 
-// Middleware para inyectar pool en req (opcional, pero útil)
+// Middleware para inyectar pool en req
 app.use((req, res, next) => {
   req.pool = pool;
   next();
@@ -67,25 +66,55 @@ app.use('/evaluacion', require('./routes/evaluacion'));
 app.use('/resultados', require('./routes/resultados'));
 app.use('/admin', require('./routes/admin'));
 
-// Manejo de errores 404
+// Manejo de errores 404 - SIMPLIFICADO
 app.use((req, res) => {
-  res.status(404).render('error', { 
-    message: 'Página no encontrada',
-    error: { status: 404 }
-  });
+  res.status(404).send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Página no encontrada</title>
+        <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+            h1 { color: #2c5aa0; }
+        </style>
+    </head>
+    <body>
+        <h1>404 - Página no encontrada</h1>
+        <p>La página que buscas no existe.</p>
+        <a href="/">Volver al inicio</a>
+    </body>
+    </html>
+  `);
 });
 
-// Manejo de errores general
+// Manejo de errores general - SIMPLIFICADO
 app.use((error, req, res, next) => {
   console.error('Error en la aplicación:', error);
-  res.status(500).render('error', {
-    message: 'Error interno del servidor',
-    error: process.env.NODE_ENV === 'production' ? {} : error
-  });
+  res.status(500).send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Error del servidor</title>
+        <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+            h1 { color: #e74c3c; }
+            .debug { background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 5px; text-align: left; }
+        </style>
+    </head>
+    <body>
+        <h1>500 - Error interno del servidor</h1>
+        <p>Ha ocurrido un error inesperado.</p>
+        ${process.env.NODE_ENV !== 'production' ? 
+          `<div class="debug"><strong>Debug:</strong><br>${error.message}</div>` : ''}
+        <a href="/">Volver al inicio</a>
+    </body>
+    </html>
+  `);
 });
 
 // 🚀 Iniciar servidor
-app.listen(port, () => {
-  console.log(`Servidor corriendo en puerto ${port}`);
-  console.log(`Entorno: ${process.env.NODE_ENV || 'development'}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`✅ Servidor corriendo en puerto ${port}`);
+  console.log(`✅ Entorno: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`✅ Base de datos: ${process.env.DATABASE_URL ? 'Configurada' : 'No configurada'}`);
 });
