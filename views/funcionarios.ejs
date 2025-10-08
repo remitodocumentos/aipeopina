@@ -3,7 +3,7 @@
 <div class="evaluacion-container">
     <h2>Examinación de Funcionarios Municipales</h2>
 
-    <form action="/evaluacion/funcionarios" method="POST" id="funcionarios-form">
+    <form action="/evaluacion/funcionarios" method="POST" id="funcionarios-form" onsubmit="return false;"> 
         <!-- Campos de información del participante -->
         <div class="participacion-info">
             <h3>Información del Participante</h3>
@@ -20,7 +20,7 @@
             
             <div id="campo_nombre" class="campo-nombre" style="display: none;">
                 <label for="nombre">Tu nombre:</label>
-                <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nombre completo">
+                <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nombre completo" onkeypress="return event.key !== 'Enter';">
             </div>
             
             <input type="hidden" id="dispositivo_id" name="dispositivo_id" value="<%= dispositivoId %>">
