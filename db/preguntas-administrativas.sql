@@ -83,7 +83,7 @@ INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
 INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES 
 ('Acciones contra la violencia familiar', 8),
 ('Acciones contra la violencia sexual', 8),
-('Acciones contra la violencia sexual', 8),
+('Acciones contra la violencia de genero', 8),
 ('Acciones contra la drogadicción', 8),
 ('Acciones contra el alcoholismo', 8),
 ('Acciones contra el tabaquismo', 8),

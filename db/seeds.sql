@@ -5,11 +5,11 @@ INSERT INTO funcionarios (nombre, cargo, seccion) VALUES
 ('Jairo Garzón Conde', 'Secretario', 'Secretaria general y de gobierno'),
 ('Alfredo Charry Medina', 'Secretario', 'Secretaria de hacienda'),
 ('Ana Maria Conde Garzon', 'Secretaria', 'Secretaria de protección social'),
-('Alexander Pulecio Charry', 'Secretario', 'Secretaria de planeación'),
+('Jhon Alexander Pulecio Charry', 'Secretario', 'Secretaria de planeación'),
 ('Daniela Ramirez Chavarro', 'Secretaria', 'Secretaria de infraestructura'),
 ('Javier Charry Bonilla', 'Secretario', 'Secretaria de desarrollo económico'),
 ('Maria Ximena Martin Charry', 'Secretaria', 'Secretaria de tránsito'),
-('Joan Orlando Garay Diaz', 'Inspector', 'Inspección de policía'),
+('Yoan Orlando Garay Diaz', 'Inspector', 'Inspección de policía'),
 ('Helenohora Llanos Diaz', 'Comisaria', 'Comisaria de familia');
 
 -- Insertar preguntas para funcionarios (ordenadas por categoría)
@@ -123,7 +123,7 @@ INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
 INSERT INTO preguntas_administrativas (texto, seccion_id) VALUES
 ('Acciones contra la violencia familiar', 8),
 ('Acciones contra la violencia sexual', 8),
-('Acciones contra la violencia sexual', 8),
+('Acciones contra la violencia de genero', 8),
 ('Acciones contra la drogadicción', 8),
 ('Acciones contra el alcoholismo', 8),
 ('Acciones contra el tabaquismo', 8),
