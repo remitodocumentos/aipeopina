@@ -1,0 +1,4 @@
+ID Participante | Nombre | ID Dispositivo | Tipo Participación | Fecha Registro | Respuestas Funcionarios | Respuestas Administrativas | Total Respuestas
+----------------+--------+----------------+--------------------+----------------+-------------------------+----------------------------+-----------------
+2 | María xvastro | 7d197fb4-d116-4126-94b9-e815a73fc400 | Con nombre | 08/10/2025 18:15:44 | 260 | 148 | 408
+1 | ñlfñkggñl | 04ebf8d2-9eab-404c-b70c-40439c1770b9 | Con nombre | 08/10/2025 15:16:09 | 130 | 74 | 204

@@ -1,4 +1,4 @@
-<%- include('partials/header') %>
+<%- include('partials/header-two') %>
 
 <div class="resultados-container">
     <h2>Resultados Consolidados</h2>
@@ -7,7 +7,10 @@
         <div class="sin-resultados">
             <h3>📊 Resultados en Proceso</h3>
             <p><%= mensaje %></p>
-            <a href="/evaluacion/funcionarios" class="btn-primary">Ser el primero en participar</a>
+            <div class="acciones-resultados">
+                <a href="/evaluacion/funcionarios" class="btn-primary">Ser el primero en participar</a>
+                <a href="/" class="btn-secondary">Volver al inicio</a>
+            </div>
         </div>
     <% } else { %>
     
@@ -116,6 +119,23 @@
             <% } %>
         <% } %>
     </section>
+
+    <!-- BOTONES DE NAVEGACIÓN MEJORADOS -->
+    <div class="navegacion-resultados">
+        <div class="acciones-navegacion">
+            <a href="/evaluacion/administrativo" class="btn-continuar">
+                <span class="icono">➡️</span>
+                Continuar con Evaluación Administrativa
+            </a>
+            <a href="/" class="btn-inicio">
+                <span class="icono">🏠</span>
+                Volver al Inicio
+            </a>
+        </div>
+        <div class="info-navegacion">
+            <p>💡 <strong>¿Ya terminaste?</strong> Completa la evaluación administrativa para tener una visión completa.</p>
+        </div>
+    </div>
     
     <% } %>
 </div>
@@ -145,6 +165,13 @@
     font-size: 1.2rem;
     margin-bottom: 30px;
     opacity: 0.9;
+}
+
+.acciones-resultados {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .sin-datos {
@@ -236,11 +263,87 @@
     color: #2c5aa0;
 }
 
+/* BOTONES DE NAVEGACIÓN MEJORADOS */
+.navegacion-resultados {
+    margin-top: 50px;
+    padding: 30px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    border: 2px solid #2c5aa0;
+}
+
+.acciones-navegacion {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.btn-continuar {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.btn-continuar:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    background: linear-gradient(135deg, #218838, #1e9c7a);
+}
+
+.btn-inicio {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 30px;
+    background: #6c757d;
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-inicio:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.info-navegacion {
+    text-align: center;
+    padding: 15px;
+    background: white;
+    border-radius: 10px;
+    border-left: 4px solid #ffc107;
+}
+
+.info-navegacion p {
+    margin: 0;
+    color: #856404;
+    font-size: 1rem;
+}
+
+.icono {
+    font-size: 1.2rem;
+}
+
+/* Botones generales */
 .btn-primary {
     display: inline-block;
     padding: 12px 30px;
-    background: white;
-    color: #2c5aa0;
+    background: #2c5aa0;
+    color: white;
     text-decoration: none;
     border-radius: 25px;
     font-weight: bold;
@@ -248,9 +351,24 @@
 }
 
 .btn-primary:hover {
-    background: #f8f9fa;
+    background: #1a3a6e;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.btn-secondary {
+    display: inline-block;
+    padding: 12px 30px;
+    background: #6c757d;
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
 }
 
 /* Responsive */
@@ -273,6 +391,23 @@
     .seccion-resultados {
         padding: 15px;
         margin: 15px 0;
+    }
+    
+    .acciones-navegacion {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-continuar,
+    .btn-inicio {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+    
+    .navegacion-resultados {
+        padding: 20px;
+        margin-top: 30px;
     }
 }
 </style>
@@ -339,7 +474,7 @@
             }
         });
         
-        console.log('Grágicas de resultados inicializadas correctamente');
+        console.log('Gráficas de resultados inicializadas correctamente');
     });
 </script>
 

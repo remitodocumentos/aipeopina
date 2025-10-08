@@ -1,0 +1,76 @@
+ID | Pregunta | ID Sección
+---+----------+-----------
+1 | Eficiencia administrativa | 1
+2 | Transparencia y rendición de cuentas | 1
+3 | Participación ciudadana | 1
+4 | Planificación estratégica | 1
+5 | Gestión financiera | 1
+6 | Agua potable y saneamiento | 2
+7 | Recolección de basuras | 2
+8 | Energía eléctrica | 2
+9 | Alcantarillado y aguas servidas | 2
+10 | Gestión de residuos solidos | 2
+11 | Vías, movilidad y transporte publico  | 2
+12 | Telecomunicaciones e internet | 2
+13 | Infraestructura educativa | 2
+14 | infraestructura de salud | 2
+15 | infraestructura practica deportiva | 2
+16 | infraestructura recreación familiar | 2
+17 | Ordenamiento territorial | 3
+18 | Espacio publico | 3
+19 | Vivienda | 3
+20 | Patrimonio y paisaje urbano | 3
+21 | Zonas verdes | 3
+22 | Uso del suelo | 3
+23 | Zonas de parqueo | 3
+24 | Urbanismo | 3
+25 | Calidad del aire | 4
+26 | Calidad del agua | 4
+27 | Biodiversidad y áreas verdes | 4
+28 | Gestión ambiental | 4
+29 | Cambio climático | 4
+30 | Contaminación por ruido | 4
+31 | Calidad de la salud | 5
+32 | Calidad de la educación | 5
+33 | Seguridad y convivencia | 5
+34 | Cultura y deporte | 5
+35 | Recreación y esparcimiento familiar | 5
+36 | Recreación y esparcimiento adulto mayor | 5
+37 | Inclusión social | 5
+38 | Empleo y desarrollo económico | 5
+39 | Innovación y tecnología | 6
+40 | Emprendimiento y empresariado | 6
+41 | Actividad económica licita | 6
+42 | Turismo | 6
+43 | Inversión extranjera | 6
+44 | Uso de la inteligencia artificial | 6
+45 | Satisfacción ciudadana | 7
+46 | Salud y bienestar | 7
+47 | Seguridad alimentaria | 7
+48 | Empleo de calidad | 7
+49 | Vivienda adecuada | 7
+50 | Estabilidad económica familiar | 7
+51 | Salud física | 7
+52 | Salud mental | 7
+53 | Ambientes saludables | 7
+54 | Inclusión educativa | 7
+55 | Confianza y solidaridad | 7
+56 | Ambiente sano | 7
+57 | Vida cultural de calidad | 7
+58 | Recreación y esparcimiento de calidad | 7
+59 | Seguridad humana | 7
+60 | Acciones contra la violencia familiar | 8
+61 | Acciones contra la violencia sexual | 8
+62 | Acciones contra la violencia de genero | 8
+63 | Acciones contra la drogadicción | 8
+64 | Acciones contra el alcoholismo | 8
+65 | Acciones contra el tabaquismo | 8
+66 | Acciones contra la inseguridad ciudadana | 8
+67 | Acciones contra la inseguridad vial | 8
+68 | Acciones contra el desamparo de adultos mayores | 8
+69 | Acciones contra la contaminación ambiental y acustica | 8
+70 | Acciones contra la ocupación del espacio público | 8
+71 | Acciones contra la pobreza multidimensional | 8
+72 | Acciones contra la delincuencia común | 8
+73 | Acciones contra la corrupción | 8
+74 | Acciones contra la falta de respuesta institucional | 8

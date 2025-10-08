@@ -8,9 +8,10 @@ const pool = new Pool({
 });
 
 // Función para registrar un participante
+// Mejorar la función registrarParticipante para evitar duplicados
 module.exports.registrarParticipante = async (dispositivo_id, nombre) => {
     try {
-        console.log('=== DEBUG REGISTRAR PARTICIPANTE ===');
+        console.log('=== REGISTRANDO PARTICIPANTE ===');
         console.log('Dispositivo ID:', dispositivo_id);
         console.log('Nombre:', nombre);
         
@@ -26,22 +27,46 @@ module.exports.registrarParticipante = async (dispositivo_id, nombre) => {
         );
         
         if (existente.rows.length > 0) {
-            console.log('Participante ya existe, actualizando nombre...');
-            // Actualizar el nombre si se proporcionó
-            if (nombre && nombre.trim() !== '') {
+            console.log('✅ Participante ya existe, actualizando nombre si es necesario...');
+            const participanteId = existente.rows[0].id;
+            
+            // Verificar si ya tiene respuestas (doble verificación)
+            const respuestasFunc = await pool.query(
+                'SELECT COUNT(*) FROM respuestas_funcionarios WHERE participante_id = $1',
+                [participanteId]
+            );
+            
+            const respuestasAdmin = await pool.query(
+                'SELECT COUNT(*) FROM respuestas_administrativas WHERE participante_id = $1',
+                [participanteId]
+            );
+            
+            const totalRespuestas = 
+                parseInt(respuestasFunc.rows[0].count) + 
+                parseInt(respuestasAdmin.rows[0].count);
+            
+            if (totalRespuestas > 0) {
+                throw new Error('Este dispositivo ya ha participado y no puede modificar sus respuestas');
+            }
+            
+            // Actualizar el nombre si se proporcionó y es diferente
+            if (nombre && nombre.trim() !== '' && nombre !== existente.rows[0].nombre) {
                 await pool.query(
                     'UPDATE participantes SET nombre = $1 WHERE dispositivo_id = $2',
                     [nombre, dispositivo_id]
                 );
+                console.log('✅ Nombre actualizado para participante existente');
             }
+            
             return existente;
         } else {
-            console.log('Insertando nuevo participante...');
+            console.log('✅ Insertando nuevo participante...');
             // Insertar nuevo participante
             const result = await pool.query(
                 'INSERT INTO participantes (dispositivo_id, nombre) VALUES ($1, $2) RETURNING id',
                 [dispositivo_id, nombre && nombre.trim() !== '' ? nombre : null]
             );
+            console.log('✅ Nuevo participante registrado con ID:', result.rows[0].id);
             return result;
         }
     } catch (error) {

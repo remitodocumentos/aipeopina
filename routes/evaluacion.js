@@ -1,4 +1,4 @@
-//routes/evaluacion.js
+// routes/evaluacion.js - VERSION MEJORADA CON BLOQUEO DE MULTIPLES PARTICIPACIONES
 const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');
@@ -24,13 +24,13 @@ router.get('/funcionarios',
     }
 );
 
-// Procesar respuestas de funcionarios
+// Procesar respuestas de funcionarios - CON VERIFICACIÓN DE PARTICIPACIÓN PREVIA
 router.post('/funcionarios', async (req, res) => {
     try {
-        console.log('=== DEBUG GUARDAR RESPUESTAS FUNCIONARIOS ===');
+        console.log('=== GUARDANDO RESPUESTAS FUNCIONARIOS ===');
         console.log('Cuerpo de la petición:', req.body);
         
-        const { nombre, dispositivo_id, tipo_participacion } = req.body;
+        const { nombre, dispositivo_id } = req.body;
         
         // Validar que dispositivo_id esté presente
         if (!dispositivo_id) {
@@ -40,22 +40,59 @@ router.post('/funcionarios', async (req, res) => {
                 message: 'No se pudo identificar tu dispositivo. Por favor, recarga la página e intenta nuevamente.'
             });
         }
+
+        // VERIFICACIÓN CRÍTICA: Comprobar que el dispositivo no haya participado ya
+        console.log('🔍 Verificando si el dispositivo ya participó...');
+        const verificacionParticipante = await db.query(
+            'SELECT id FROM participantes WHERE dispositivo_id = $1', 
+            [dispositivo_id]
+        );
+        
+        if (verificacionParticipante.rows.length > 0) {
+            const participanteId = verificacionParticipante.rows[0].id;
+            
+            // Verificar si YA TIENE respuestas de funcionarios
+            const respuestasExistentes = await db.query(
+                'SELECT COUNT(*) as count FROM respuestas_funcionarios WHERE participante_id = $1',
+                [participanteId]
+            );
+            
+            const totalRespuestas = parseInt(respuestasExistentes.rows[0].count);
+            console.log(`Respuestas existentes encontradas: ${totalRespuestas}`);
+            
+            if (totalRespuestas > 0) {
+                console.log('❌ BLOQUEO: Intento de reenvío detectado. Dispositivo ya participó.');
+                return res.status(400).json({
+                    success: false,
+                    message: 'Ya has participado anteriormente. No puedes enviar respuestas múltiples veces desde el mismo dispositivo.'
+                });
+            }
+        }
         
         // Registrar participante
-        console.log('Registrando participante...');
+        console.log('✅ Registrando participante...');
         const participanteResult = await db.registrarParticipante(dispositivo_id, nombre);
         const participanteId = participanteResult.rows[0].id;
         console.log('Participante registrado con ID:', participanteId);
         
         // Guardar respuestas con ID del participante
-        console.log('Guardando respuestas...');
+        console.log('💾 Guardando respuestas...');
         await db.saveRespuestasFuncionarios(req.body, participanteId);
-        console.log('Respuestas guardadas correctamente');
+        console.log('✅ Respuestas guardadas correctamente');
         
         // Redirigir a la página de confirmación
         res.redirect('/evaluacion/confirmacion');
     } catch (error) {
-        console.error('Error al guardar respuestas de funcionarios:', error);
+        console.error('❌ Error al guardar respuestas de funcionarios:', error);
+        
+        // Manejar específicamente el error de "ya participó"
+        if (error.message.includes('ya ha participado')) {
+            return res.status(400).json({
+                success: false,
+                message: 'Este dispositivo ya ha participado y no puede enviar respuestas nuevamente.'
+            });
+        }
+        
         res.status(500).json({
             success: false,
             message: 'Error al guardar tus respuestas: ' + error.message
@@ -88,13 +125,12 @@ router.get('/administrativo',
     }
 );
 
-// ESTE ES EL CÓDIGO DEL PASO 4 - PROCESAR RESPUESTAS ADMINISTRATIVAS
+// Procesar respuestas administrativas - CON VERIFICACIÓN DE PARTICIPACIÓN PREVIA
 router.post('/administrativo', async (req, res) => {
     try {
-        console.log('=== DEBUG ADMINISTRATIVO ===');
+        console.log('=== GUARDANDO RESPUESTAS ADMINISTRATIVAS ===');
         console.log('Body completo recibido:', JSON.stringify(req.body, null, 2));
         console.log('Dispositivo_id recibido:', req.body.dispositivo_id);
-        console.log('Headers:', req.headers);
 
         const { nombre, dispositivo_id } = req.body;
         
@@ -106,11 +142,39 @@ router.post('/administrativo', async (req, res) => {
                 message: 'No se pudo identificar tu dispositivo. Por favor, recarga la página e intenta nuevamente.'
             });
         }
+
+        // VERIFICACIÓN CRÍTICA: Comprobar que el dispositivo no haya participado ya
+        console.log('🔍 Verificando si el dispositivo ya participó...');
+        const verificacionParticipante = await db.query(
+            'SELECT id FROM participantes WHERE dispositivo_id = $1', 
+            [dispositivo_id]
+        );
+        
+        if (verificacionParticipante.rows.length > 0) {
+            const participanteId = verificacionParticipante.rows[0].id;
+            
+            // Verificar si YA TIENE respuestas administrativas
+            const respuestasExistentes = await db.query(
+                'SELECT COUNT(*) as count FROM respuestas_administrativas WHERE participante_id = $1',
+                [participanteId]
+            );
+            
+            const totalRespuestas = parseInt(respuestasExistentes.rows[0].count);
+            console.log(`Respuestas administrativas existentes encontradas: ${totalRespuestas}`);
+            
+            if (totalRespuestas > 0) {
+                console.log('❌ BLOQUEO: Intento de reenvío detectado. Dispositivo ya participó.');
+                return res.status(400).json({
+                    success: false,
+                    message: 'Ya has participado anteriormente. No puedes enviar respuestas múltiples veces desde el mismo dispositivo.'
+                });
+            }
+        }
         
         console.log('✅ Dispositivo ID:', dispositivo_id);
         console.log('✅ Nombre:', nombre);
 
-        // Registrar participante (si no se registró en la primera parte)
+        // Registrar participante
         const participanteResult = await db.registrarParticipante(dispositivo_id, nombre);
         const participanteId = participanteResult.rows[0].id;
         console.log('✅ Participante ID:', participanteId);
@@ -122,7 +186,16 @@ router.post('/administrativo', async (req, res) => {
         // Redirigir a la página de confirmación administrativa
         res.redirect('/evaluacion/confirmacion-admin');
     } catch (error) {
-        console.error('Error al guardar respuestas administrativas:', error);
+        console.error('❌ Error al guardar respuestas administrativas:', error);
+        
+        // Manejar específicamente el error de "ya participó"
+        if (error.message.includes('ya ha participado')) {
+            return res.status(400).json({
+                success: false,
+                message: 'Este dispositivo ya ha participado y no puede enviar respuestas nuevamente.'
+            });
+        }
+        
         res.status(500).json({
             success: false,
             message: 'Error al guardar tus respuestas: ' + error.message
