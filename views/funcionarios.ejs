@@ -1,8 +1,3 @@
-<%- include('partials/header') %>
-
-<div class="evaluacion-container">
-    <h2>Examinación de Funcionarios Municipales</h2>
-    
 <form action="/evaluacion/funcionarios" method="POST" id="funcionarios-form">
     <!-- Campos de información del participante -->
     <div class="participacion-info">
@@ -23,7 +18,6 @@
             <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nombre completo">
         </div>
         
-        <!-- Asegurarse de que el dispositivo_id siempre se envíe -->
         <input type="hidden" id="dispositivo_id" name="dispositivo_id" value="<%= dispositivoId %>">
     </div>
     
@@ -45,7 +39,7 @@
                         <input type="radio" 
                                name="<%= funcionario.id %>-<%= pregunta.id %>" 
                                value="<%= opcion %>"
-                               required>
+                               class="pregunta-radio">  <!-- 👈 SIN required -->
                         <%= opcion.charAt(0).toUpperCase() + opcion.slice(1) %>
                     </label>
                     <% }); %>
@@ -59,92 +53,116 @@
             Siguiente Funcionario
         </button>
         <% } else { %>
-        <button type="submit" class="btn-primary">Enviar Evaluación</button>
+        <button type="button" class="btn-primary" onclick="validarYEnviarFormulario()" id="btn-enviar">
+            Enviar Evaluación
+        </button>
         <% } %>
     </div>
     <% }); %>
 </form>
-    
-</div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Manejar opciones de participación
-    const anonimoRadio = document.getElementById('anonimo');
-    const conNombreRadio = document.getElementById('con_nombre');
-    const campoNombre = document.getElementById('campo_nombre');
-    const nombreInput = document.getElementById('nombre');
+// Función de validación mejorada
+function validarYEnviarFormulario() {
+    console.log('=== VALIDANDO FORMULARIO ===');
+    
     const dispositivoIdInput = document.getElementById('dispositivo_id');
-    
-    // Asegurarse de que el dispositivo_id esté configurado
-    if (!dispositivoIdInput.value) {
-        dispositivoIdInput.value = generarUUID();
-        console.log('ID de dispositivo generado:', dispositivoIdInput.value);
-    }
-    
-    anonimoRadio.addEventListener('change', function() {
-        campoNombre.style.display = 'none';
-        nombreInput.value = '';
-    });
-    
-    conNombreRadio.addEventListener('change', function() {
-        campoNombre.style.display = 'block';
-        nombreInput.focus();
-    });
-    
-    // Validar formulario antes de enviar
+    const btnEnviar = document.getElementById('btn-enviar');
     const form = document.getElementById('funcionarios-form');
     
-    form.addEventListener('submit', function(e) {
-        // Validar que todos los campos de radio estén seleccionados
-        const radioGroups = {};
-        const radioButtons = form.querySelectorAll('input[type="radio"]');
+    // 1. Asegurar dispositivo_id
+    if (!dispositivoIdInput.value) {
+        dispositivoIdInput.value = generarUUID();
+        console.log('Dispositivo ID generado:', dispositivoIdInput.value);
+    }
+    
+    // 2. Validar que TODAS las preguntas de TODOS los funcionarios tengan respuesta
+    let todasRespondidas = true;
+    const preguntasSinResponder = [];
+    
+    // Revisar todos los funcionarios (visibles y no visibles)
+    const todosLosFuncionarios = document.querySelectorAll('.funcionario-section');
+    
+    todosLosFuncionarios.forEach(seccion => {
+        const gruposPreguntas = {};
         
-        radioButtons.forEach(radio => {
-            const name = radio.name;
-            if (!radioGroups[name]) {
-                radioGroups[name] = false;
-            }
-            if (radio.checked) {
-                radioGroups[name] = true;
+        // Encontrar todos los grupos de preguntas en esta sección
+        const radios = seccion.querySelectorAll('.pregunta-radio');
+        radios.forEach(radio => {
+            if (!gruposPreguntas[radio.name]) {
+                gruposPreguntas[radio.name] = false;
             }
         });
         
-        // Verificar que todos los grupos tengan una selección
-        const allSelected = Object.values(radioGroups).every(selected => selected);
+        // Verificar cuáles grupos tienen respuesta
+        const radiosMarcados = seccion.querySelectorAll('.pregunta-radio:checked');
+        radiosMarcados.forEach(radio => {
+            gruposPreguntas[radio.name] = true;
+        });
         
-        if (!allSelected) {
-            e.preventDefault();
-            alert('Por favor, responde todas las preguntas antes de enviar.');
-            return false;
+        // Revisar qué grupos faltan
+        for (const [grupo, respondido] of Object.entries(gruposPreguntas)) {
+            if (!respondido) {
+                todasRespondidas = false;
+                preguntasSinResponder.push(grupo);
+                console.log('❌ Pregunta sin responder:', grupo);
+            }
         }
-        
-        // Asegurarse de que el dispositivo_id esté configurado
-        if (!dispositivoIdInput.value) {
-            dispositivoIdInput.value = generarUUID();
-        }
-        
-        // Mostrar indicador de carga
-        const submitButton = form.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Enviando...';
-        
-        console.log('Enviando formulario con dispositivo_id:', dispositivoIdInput.value);
-        console.log('Nombre:', nombreInput.value);
-        
-        return true;
     });
     
-    // Función para generar un UUID simple
-    function generarUUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            const r = Math.random() * 16 | 0;
-            const v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
+    if (!todasRespondidas) {
+        // Mostrar cuántas preguntas faltan
+        const faltan = preguntasSinResponder.length;
+        alert(`Faltan ${faltan} pregunta(s) por responder. Por favor, revisa todas las secciones.`);
+        
+        // Opcional: Mostrar la primera sección con preguntas faltantes
+        if (preguntasSinResponder.length > 0) {
+            const primeraPreguntaFaltante = preguntasSinResponder[0];
+            const [funcionarioId] = primeraPreguntaFaltante.split('-');
+            mostrarSeccion(funcionarioId);
+        }
+        
+        return false;
     }
-});
+    
+    console.log('✅ Todas las preguntas respondidas');
+    
+    // 3. Mostrar loading y enviar
+    btnEnviar.disabled = true;
+    btnEnviar.textContent = 'Enviando...';
+    
+    console.log('📤 Enviando formulario...');
+    
+    // Enviar el formulario
+    form.submit();
+    
+    return true;
+}
 
+// Función para mostrar una sección específica
+function mostrarSeccion(funcionarioId) {
+    // Ocultar todas las secciones
+    document.querySelectorAll('.funcionario-section').forEach(sec => {
+        sec.style.display = 'none';
+    });
+    
+    // Mostrar la sección solicitada
+    const seccion = document.getElementById(`funcionario-${funcionarioId}`);
+    if (seccion) {
+        seccion.style.display = 'block';
+        seccion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function generarUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+// Resto del código sin cambios...
 function mostrarSiguiente(actualId) {
     const actual = document.getElementById(`funcionario-${actualId}`);
     actual.style.display = 'none';
@@ -156,17 +174,31 @@ function mostrarSiguiente(actualId) {
         if (mostrarSiguiente) {
             seccion.style.display = 'block';
             mostrarSiguiente = false;
-            
-            // Scroll al inicio de la nueva sección
             seccion.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else if (seccion.id === `funcionario-${actualId}`) {
             mostrarSiguiente = true;
         }
     });
 }
+
+// Manejo de opciones de participación
+document.addEventListener('DOMContentLoaded', function() {
+    const anonimoRadio = document.getElementById('anonimo');
+    const conNombreRadio = document.getElementById('con_nombre');
+    const campoNombre = document.getElementById('campo_nombre');
+    
+    anonimoRadio.addEventListener('change', function() {
+        campoNombre.style.display = 'none';
+        document.getElementById('nombre').value = '';
+    });
+    
+    conNombreRadio.addEventListener('change', function() {
+        campoNombre.style.display = 'block';
+        document.getElementById('nombre').focus();
+    });
+});
 </script>
 
 <%- include('partials/footer') %>
 
-
-
+<
