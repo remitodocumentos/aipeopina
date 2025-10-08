@@ -21,12 +21,12 @@
             <label for="nombre">Tu nombre:</label>
             <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nombre completo">
         </div>
-        
-        <!-- 👇 AGREGAR ESTE CAMPO OCULTO -->
-        <input type="hidden" id="dispositivo_id" name="dispositivo_id" value="<%= dispositivoId %>">
     </div>
     
     <form action="/evaluacion/administrativo" method="POST" id="administrativo-form">
+        <!-- 👇 MOVER el dispositivo_id DENTRO del formulario -->
+        <input type="hidden" id="dispositivo_id" name="dispositivo_id" value="<%= dispositivoId %>">
+        
         <% let preguntasPorSeccion = {}; %>
         <% preguntas.forEach(pregunta => { %>
             <% if (!preguntasPorSeccion[pregunta.seccion_id]) { %>
@@ -49,7 +49,7 @@
                             <input type="radio" 
                                    name="<%= seccion.id %>-<%= pregunta.id %>" 
                                    value="<%= opcion %>"
-                                   required>
+                                   class="pregunta-radio">
                             <%= opcion.charAt(0).toUpperCase() + opcion.slice(1) %>
                         </label>
                         <% }); %>
@@ -63,7 +63,9 @@
                 Siguiente Sección
             </button>
             <% } else { %>
-            <button type="submit" class="btn-primary">Enviar Opinión</button>
+            <button type="button" class="btn-primary" onclick="validarYEnviarAdministrativo()" id="btn-enviar-admin">
+                Enviar Opinión
+            </button>
             <% } %>
         </div>
         <% }); %>
@@ -71,101 +73,169 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Manejar opciones de participación
-        const anonimoRadio = document.getElementById('anonimo');
-        const conNombreRadio = document.getElementById('con_nombre');
-        const campoNombre = document.getElementById('campo_nombre');
-        const nombreInput = document.getElementById('nombre');
-        const dispositivoIdInput = document.getElementById('dispositivo_id');
-        const form = document.getElementById('administrativo-form');
-        
-        // Asegurarse de que el dispositivo_id esté configurado
-        if (!dispositivoIdInput.value) {
+// Función de validación para el formulario administrativo
+function validarYEnviarAdministrativo() {
+    console.log('=== VALIDANDO FORMULARIO ADMINISTRATIVO ===');
+    
+    const dispositivoIdInput = document.getElementById('dispositivo_id');
+    const btnEnviar = document.getElementById('btn-enviar-admin');
+    const form = document.getElementById('administrativo-form');
+    
+    // 1. Asegurar dispositivo_id
+    if (!dispositivoIdInput.value) {
+        // Intentar obtener el dispositivo_id de la cookie
+        const dispositivoIdDeCookie = getCookie('participacion_id');
+        if (dispositivoIdDeCookie) {
+            dispositivoIdInput.value = dispositivoIdDeCookie;
+            console.log('Dispositivo ID obtenido de cookie:', dispositivoIdInput.value);
+        } else {
             dispositivoIdInput.value = generarUUID();
-            console.log('ID de dispositivo generado:', dispositivoIdInput.value);
+            console.log('Dispositivo ID generado:', dispositivoIdInput.value);
         }
+    }
+    
+    console.log('Dispositivo ID a enviar:', dispositivoIdInput.value);
+    
+    // 2. Validar que TODAS las preguntas tengan respuesta
+    let todasRespondidas = true;
+    const preguntasSinResponder = [];
+    
+    // Revisar todas las secciones (visibles y no visibles)
+    const todasLasSecciones = document.querySelectorAll('.seccion-section');
+    
+    todasLasSecciones.forEach(seccion => {
+        const gruposPreguntas = {};
         
-        anonimoRadio.addEventListener('change', function() {
-            campoNombre.style.display = 'none';
-            nombreInput.value = '';
-        });
-        
-        conNombreRadio.addEventListener('change', function() {
-            campoNombre.style.display = 'block';
-            nombreInput.focus();
-        });
-        
-        // Validar formulario antes de enviar
-        form.addEventListener('submit', function(e) {
-            // Validar que todos los campos de radio estén seleccionados
-            const radioGroups = {};
-            const radioButtons = form.querySelectorAll('input[type="radio"]');
-            
-            radioButtons.forEach(radio => {
-                const name = radio.name;
-                if (!radioGroups[name]) {
-                    radioGroups[name] = false;
-                }
-                if (radio.checked) {
-                    radioGroups[name] = true;
-                }
-            });
-            
-            // Verificar que todos los grupos tengan una selección
-            const allSelected = Object.values(radioGroups).every(selected => selected);
-            
-            if (!allSelected) {
-                e.preventDefault();
-                alert('Por favor, responde todas las preguntas antes de enviar.');
-                return false;
+        // Encontrar todos los grupos de preguntas en esta sección
+        const radios = seccion.querySelectorAll('.pregunta-radio');
+        radios.forEach(radio => {
+            if (!gruposPreguntas[radio.name]) {
+                gruposPreguntas[radio.name] = false;
             }
-            
-            // Asegurarse de que el dispositivo_id esté configurado
-            if (!dispositivoIdInput.value) {
-                dispositivoIdInput.value = generarUUID();
-            }
-            
-            // Mostrar indicador de carga
-            const submitButton = form.querySelector('button[type="submit"]');
-            submitButton.disabled = true;
-            submitButton.textContent = 'Enviando...';
-            
-            console.log('Enviando formulario administrativo con dispositivo_id:', dispositivoIdInput.value);
-            console.log('Nombre:', nombreInput.value);
-            
-            return true;
         });
         
-        // Función para generar un UUID simple
-        function generarUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                const r = Math.random() * 16 | 0;
-                const v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
+        // Verificar cuáles grupos tienen respuesta
+        const radiosMarcados = seccion.querySelectorAll('.pregunta-radio:checked');
+        radiosMarcados.forEach(radio => {
+            gruposPreguntas[radio.name] = true;
+        });
+        
+        // Revisar qué grupos faltan
+        for (const [grupo, respondido] of Object.entries(gruposPreguntas)) {
+            if (!respondido) {
+                todasRespondidas = false;
+                preguntasSinResponder.push(grupo);
+                console.log('❌ Pregunta administrativa sin responder:', grupo);
+            }
         }
     });
     
-    function mostrarSiguienteSeccion(actualId) {
-        const actual = document.getElementById(`seccion-${actualId}`);
-        actual.style.display = 'none';
+    if (!todasRespondidas) {
+        const faltan = preguntasSinResponder.length;
+        alert(`Faltan ${faltan} pregunta(s) administrativas por responder. Por favor, revisa todas las secciones.`);
         
-        const secciones = document.querySelectorAll('.seccion-section');
-        let mostrarSiguiente = false;
+        // Navegar a la primera sección con preguntas faltantes
+        if (preguntasSinResponder.length > 0) {
+            const primeraPreguntaFaltante = preguntasSinResponder[0];
+            const [seccionId] = primeraPreguntaFaltante.split('-');
+            mostrarSeccionAdmin(seccionId);
+        }
         
-        secciones.forEach(seccion => {
-            if (mostrarSiguiente) {
-                seccion.style.display = 'block';
-                mostrarSiguiente = false;
-                
-                // Scroll al inicio de la nueva sección
-                seccion.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else if (seccion.id === `seccion-${actualId}`) {
-                mostrarSiguiente = true;
-            }
-        });
+        return false;
     }
+    
+    console.log('✅ Todas las preguntas administrativas respondidas');
+    
+    // 3. Mostrar loading y enviar
+    btnEnviar.disabled = true;
+    btnEnviar.textContent = 'Enviando...';
+    
+    console.log('📤 Enviando formulario administrativo...');
+    
+    // Enviar el formulario
+    form.submit();
+    
+    return true;
+}
+
+// Función para obtener cookie
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+// Función para mostrar una sección específica
+function mostrarSeccionAdmin(seccionId) {
+    // Ocultar todas las secciones
+    document.querySelectorAll('.seccion-section').forEach(sec => {
+        sec.style.display = 'none';
+    });
+    
+    // Mostrar la sección solicitada
+    const seccion = document.getElementById(`seccion-${seccionId}`);
+    if (seccion) {
+        seccion.style.display = 'block';
+        seccion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function generarUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+// Manejo de opciones de participación
+document.addEventListener('DOMContentLoaded', function() {
+    const anonimoRadio = document.getElementById('anonimo');
+    const conNombreRadio = document.getElementById('con_nombre');
+    const campoNombre = document.getElementById('campo_nombre');
+    const nombreInput = document.getElementById('nombre');
+    
+    anonimoRadio.addEventListener('change', function() {
+        campoNombre.style.display = 'none';
+        nombreInput.value = '';
+    });
+    
+    conNombreRadio.addEventListener('change', function() {
+        campoNombre.style.display = 'block';
+        nombreInput.focus();
+    });
+    
+    // Verificar dispositivo_id al cargar la página
+    const dispositivoIdInput = document.getElementById('dispositivo_id');
+    console.log('Dispositivo ID inicial:', dispositivoIdInput.value);
+    
+    if (!dispositivoIdInput.value) {
+        const dispositivoIdDeCookie = getCookie('participacion_id');
+        if (dispositivoIdDeCookie) {
+            dispositivoIdInput.value = dispositivoIdDeCookie;
+            console.log('Dispositivo ID establecido desde cookie:', dispositivoIdInput.value);
+        }
+    }
+});
+
+function mostrarSiguienteSeccion(actualId) {
+    const actual = document.getElementById(`seccion-${actualId}`);
+    actual.style.display = 'none';
+    
+    const secciones = document.querySelectorAll('.seccion-section');
+    let mostrarSiguiente = false;
+    
+    secciones.forEach(seccion => {
+        if (mostrarSiguiente) {
+            seccion.style.display = 'block';
+            mostrarSiguiente = false;
+            seccion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (seccion.id === `seccion-${actualId}`) {
+            mostrarSiguiente = true;
+        }
+    });
+}
 </script>
 
 <%- include('partials/footer') %>

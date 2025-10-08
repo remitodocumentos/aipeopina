@@ -92,7 +92,9 @@ router.get('/administrativo',
 router.post('/administrativo', async (req, res) => {
     try {
         console.log('=== DEBUG ADMINISTRATIVO ===');
-        console.log('Body recibido:', req.body);
+        console.log('Body completo recibido:', JSON.stringify(req.body, null, 2));
+        console.log('Dispositivo_id recibido:', req.body.dispositivo_id);
+        console.log('Headers:', req.headers);
 
         const { nombre, dispositivo_id } = req.body;
         
