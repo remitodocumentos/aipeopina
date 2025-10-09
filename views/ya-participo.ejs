@@ -1,20 +1,54 @@
 <%- include('partials/header-two') %>
 
+<%
+// Determinar qué evaluación ya fue completada
+const tipo = req.query.tipo || 'completa';
+let mensajeTitulo = '';
+let mensajeDetalle = '';
+
+if (tipo === 'funcionarios') {
+    mensajeTitulo = 'Ya completaste la evaluación de funcionarios';
+    mensajeDetalle = 'Has terminado la primera parte de la evaluación. Puedes continuar con la evaluación administrativa.';
+} else if (tipo === 'administrativas') {
+    mensajeTitulo = 'Ya completaste la evaluación administrativa';
+    mensajeDetalle = '¡Felicidades! Has completado ambas partes de la evaluación.';
+} else {
+    mensajeTitulo = 'Ya has participado en esta evaluación';
+    mensajeDetalle = 'Has completado todas las evaluaciones disponibles.';
+}
+%>
+
 <div class="container">
     <div class="mensaje-ya-participo">
-        <div class="icono-advertencia">🚫</div>
-        <h2>Ya has participado en esta evaluación</h2>
-        <p><strong>Por motivos de transparencia y para garantizar la integridad de los resultados:</strong></p>
-        <ul>
-            <li>Solo permitimos <strong>una participación por dispositivo</strong></li>
-            <li>No es posible modificar las respuestas una vez enviadas</li>
-            <li>Cada dispositivo (computador, móvil, tablet) solo puede participar una vez</li>
-        </ul>
-        <p>Si crees que esto es un error, por favor contacta al administrador.</p>
+        <div class="icono-advertencia">
+            <% if (tipo === 'funcionarios') { %>
+                ✅
+            <% } else if (tipo === 'administrativas') { %>
+                🎉
+            <% } else { %>
+                🚫
+            <% } %>
+        </div>
+        <h2><%= mensajeTitulo %></h2>
+        <p><strong><%= mensajeDetalle %></strong></p>
+        
+        <div class="info-adicional">
+            <p>Por motivos de transparencia y para garantizar la integridad de los resultados:</p>
+            <ul>
+                <li>Solo permitimos <strong>una participación por dispositivo</strong></li>
+                <li>No es posible modificar las respuestas una vez enviadas</li>
+                <li>Cada dispositivo (computador, móvil, tablet) solo puede participar una vez</li>
+            </ul>
+        </div>
         
         <div class="acciones">
-            <a href="/resultados" class="btn-primary">Ver resultados actuales</a>
-            <a href="/" class="btn-secondary">Volver al inicio</a>
+            <% if (tipo === 'funcionarios') { %>
+                <a href="/evaluacion/administrativo" class="btn-continuar">
+                    ➡️ Continuar con Evaluación Administrativa
+                </a>
+            <% } %>
+            <a href="/resultados" class="btn-primary">📊 Ver Resultados</a>
+            <a href="/" class="btn-secondary">🏠 Volver al Inicio</a>
         </div>
     </div>
 </div>
@@ -22,7 +56,7 @@
 <style>
 .mensaje-ya-participo {
     max-width: 600px;
-    margin: 100px auto;
+    margin: 80px auto;
     padding: 40px;
     background: white;
     border-radius: 15px;
@@ -31,26 +65,95 @@
 }
 
 .mensaje-ya-participo h2 {
-    color: #e74c3c;
+    color: #2c5aa0;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+}
+
+.icono-advertencia {
+    font-size: 4rem;
     margin-bottom: 20px;
 }
 
-.mensaje-ya-participo ul {
+.info-adicional {
     text-align: left;
-    margin: 20px 0;
+    margin: 25px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #2c5aa0;
+}
+
+.info-adicional ul {
+    margin: 10px 0;
     padding-left: 20px;
 }
 
-.mensaje-ya-participo li {
-    margin-bottom: 10px;
+.info-adicional li {
+    margin-bottom: 8px;
     line-height: 1.5;
 }
 
 .acciones {
     margin-top: 30px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     gap: 15px;
+}
+
+.btn-continuar {
+    display: inline-block;
+    padding: 15px 25px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-continuar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.btn-primary, .btn-secondary {
+    display: inline-block;
+    padding: 12px 25px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #2c5aa0;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #1a3a6e;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+@media (max-width: 768px) {
+    .mensaje-ya-participo {
+        margin: 40px 20px;
+        padding: 25px;
+    }
+    
+    .acciones {
+        gap: 12px;
+    }
 }
 </style>
 

@@ -25,7 +25,7 @@ router.get('/funcionarios',
 );
 
 // Procesar respuestas de funcionarios - CON VERIFICACIÓN DE PARTICIPACIÓN PREVIA
-// En la ruta POST /funcionarios - ACTUALIZAR la llamada:
+// En la ruta POST /funcionarios - MEJORAR manejo de errores:
 router.post('/funcionarios', async (req, res) => {
     try {
         console.log('=== GUARDANDO RESPUESTAS FUNCIONARIOS ===');
@@ -35,9 +35,9 @@ router.post('/funcionarios', async (req, res) => {
         // Validar que dispositivo_id esté presente
         if (!dispositivo_id) {
             console.error('Error: dispositivo_id no está presente en la petición');
-            return res.status(400).json({
-                success: false,
-                message: 'No se pudo identificar tu dispositivo. Por favor, recarga la página e intenta nuevamente.'
+            return res.status(400).render('error', {
+                message: 'No se pudo identificar tu dispositivo',
+                details: 'Por favor, recarga la página e intenta nuevamente.'
             });
         }
 
@@ -62,10 +62,8 @@ router.post('/funcionarios', async (req, res) => {
             
             if (totalRespuestas > 0) {
                 console.log('❌ BLOQUEO: Intento de reenvío detectado. Dispositivo ya participó en funcionarios.');
-                return res.status(400).json({
-                    success: false,
-                    message: 'Ya has completado la evaluación de funcionarios. Puedes continuar con la evaluación administrativa.'
-                });
+                // 👇 REDIRIGIR en lugar de devolver JSON
+                return res.redirect('/ya-participo?tipo=funcionarios');
             }
         }
         
@@ -85,22 +83,19 @@ router.post('/funcionarios', async (req, res) => {
     } catch (error) {
         console.error('❌ Error al guardar respuestas de funcionarios:', error);
         
-        // Manejar específicamente el error de "ya participó"
+        // 👇 MANEJAR ERRORES CON PÁGINAS EN LUGAR DE JSON
         if (error.message.includes('ya ha completado')) {
-            return res.status(400).json({
-                success: false,
-                message: error.message
-            });
+            return res.redirect('/ya-participo?tipo=funcionarios');
         }
         
-        res.status(500).json({
-            success: false,
-            message: 'Error al guardar tus respuestas: ' + error.message
+        res.status(500).render('error', {
+            message: 'Error al guardar tus respuestas',
+            details: error.message
         });
     }
 });
 
-// En la ruta POST /administrativo - ACTUALIZAR la llamada:
+// En la ruta POST /administrativo - MEJORAR manejo de errores:
 router.post('/administrativo', async (req, res) => {
     try {
         console.log('=== GUARDANDO RESPUESTAS ADMINISTRATIVAS ===');
@@ -110,9 +105,9 @@ router.post('/administrativo', async (req, res) => {
         // Validar que dispositivo_id esté presente
         if (!dispositivo_id) {
             console.error('❌ Error: dispositivo_id no presente en la petición');
-            return res.status(400).json({
-                success: false,
-                message: 'No se pudo identificar tu dispositivo. Por favor, recarga la página e intenta nuevamente.'
+            return res.status(400).render('error', {
+                message: 'No se pudo identificar tu dispositivo',
+                details: 'Por favor, recarga la página e intenta nuevamente.'
             });
         }
 
@@ -137,10 +132,8 @@ router.post('/administrativo', async (req, res) => {
             
             if (totalRespuestas > 0) {
                 console.log('❌ BLOQUEO: Intento de reenvío detectado. Dispositivo ya participó en administrativas.');
-                return res.status(400).json({
-                    success: false,
-                    message: 'Ya has completado la evaluación administrativa. No puedes enviar respuestas múltiples veces.'
-                });
+                // 👇 REDIRIGIR en lugar de devolver JSON
+                return res.redirect('/ya-participo?tipo=administrativas');
             }
         }
         
@@ -161,17 +154,14 @@ router.post('/administrativo', async (req, res) => {
     } catch (error) {
         console.error('❌ Error al guardar respuestas administrativas:', error);
         
-        // Manejar específicamente el error de "ya participó"
+        // 👇 MANEJAR ERRORES CON PÁGINAS EN LUGAR DE JSON
         if (error.message.includes('ya ha completado')) {
-            return res.status(400).json({
-                success: false,
-                message: error.message
-            });
+            return res.redirect('/ya-participo?tipo=administrativas');
         }
         
-        res.status(500).json({
-            success: false,
-            message: 'Error al guardar tus respuestas: ' + error.message
+        res.status(500).render('error', {
+            message: 'Error al guardar tus respuestas',
+            details: error.message
         });
     }
 });
