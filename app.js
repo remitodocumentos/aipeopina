@@ -64,6 +64,7 @@ app.use((req, res, next) => {
 app.use('/', require('./routes/index'));
 app.use('/evaluacion', require('./routes/evaluacion'));
 app.use('/resultados', require('./routes/resultados'));
+app.use('/resultados-final', require('./routes/resultados-final'));
 app.use('/admin', require('./routes/admin'));
 
 // Manejo de errores 404 - SIMPLIFICADO
