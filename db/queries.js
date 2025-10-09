@@ -368,6 +368,40 @@ module.exports.getResultadosAdministrativos = async () => {
     }
 };
 
+// En db/queries.js - AGREGAR estas nuevas funciones:
+
+// Obtener número de participantes únicos
+module.exports.getTotalParticipantes = async () => {
+    const result = await pool.query('SELECT COUNT(DISTINCT id) FROM participantes');
+    return parseInt(result.rows[0].count);
+};
+
+// Obtener número de participantes que han respondido funcionarios
+module.exports.getParticipantesConRespuestasFuncionarios = async () => {
+    const result = await pool.query(`
+        SELECT COUNT(DISTINCT participante_id) 
+        FROM respuestas_funcionarios 
+        WHERE participante_id IS NOT NULL
+    `);
+    return parseInt(result.rows[0].count);
+};
+
+// Obtener número de participantes que han respondido administrativas
+module.exports.getParticipantesConRespuestasAdministrativas = async () => {
+    const result = await pool.query(`
+        SELECT COUNT(DISTINCT participante_id) 
+        FROM respuestas_administrativas 
+        WHERE participante_id IS NOT NULL
+    `);
+    return parseInt(result.rows[0].count);
+};
+
+// Contador de visitas (usaremos la tabla participantes como proxy)
+module.exports.getTotalVisitas = async () => {
+    const result = await pool.query('SELECT COUNT(*) FROM participantes');
+    return parseInt(result.rows[0].count);
+};
+
 // AGREGAR estas líneas al final del archivo: DEEPSEEK
 module.exports.pool = pool;
 module.exports.query = (text, params) => pool.query(text, params);

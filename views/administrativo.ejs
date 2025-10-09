@@ -4,7 +4,7 @@
     <h2>Percepción de la Gestión Administrativa</h2>
     
     <!-- Sección de información del participante -->
-    <div class="participacion-info">
+    <!--<div class="participacion-info">
         <h3>Información del Participante</h3>
         <div class="opciones-participacion">
             <div class="opcion-participacion">
@@ -21,7 +21,7 @@
             <label for="nombre">Tu nombre:</label>
             <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nombre completo">
         </div>
-    </div>
+    </div>-->
     
     <form action="/evaluacion/administrativo" method="POST" id="administrativo-form">
         <!-- 👇 MOVER el dispositivo_id DENTRO del formulario -->
@@ -59,7 +59,7 @@
             </div>
             
             <% if (index < secciones.length - 1) { %>
-            <button type="button" class="btn-siguiente" onclick="mostrarSiguienteSeccion(<%= seccion.id %>)">
+            <button type="button" class="btn-siguiente" onclick="mostrarSiguienteSeccion('<%= seccion.id %>')">
                 Siguiente Sección
             </button>
             <% } else { %>
