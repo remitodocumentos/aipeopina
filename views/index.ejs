@@ -4,12 +4,12 @@
     <!-- SECCIÓN DE ESTADÍSTICAS -->
     <% if (estadisticas) { %>
     <section class="estadisticas">
-        <h2>📊 Participación de la Comunidad</h2>
+        <h3>📊 Participación de la Comunidad</h2>
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">👥</div>
                 <div class="stat-info">
-                    <h3>Total Participantes</h3>
+                    <h4>Total Participantes</h3>
                     <p class="stat-number"><%= estadisticas.totalParticipantes %></p>
                     <p class="stat-label">Personas han participado</p>
                 </div>
@@ -18,7 +18,7 @@
             <div class="stat-card">
                 <div class="stat-icon">📈</div>
                 <div class="stat-info">
-                    <h3>Respuestas Funcionarios</h3>
+                    <h4>Respuestas Funcionarios</h3>
                     <p class="stat-number"><%= estadisticas.respuestasFuncionarios %></p>
                     <p class="stat-label"><%= estadisticas.participantesFuncionarios %> personas evaluaron</p>
                 </div>
@@ -27,7 +27,7 @@
             <div class="stat-card">
                 <div class="stat-icon">🏢</div>
                 <div class="stat-info">
-                    <h3>Respuestas Administrativas</h3>
+                    <h4>Respuestas Administrativas</h3>
                     <p class="stat-number"><%= estadisticas.respuestasAdministrativas %></p>
                     <p class="stat-label"><%= estadisticas.participantesAdministrativas %> personas evaluaron</p>
                 </div>
@@ -36,7 +36,7 @@
             <div class="stat-card">
                 <div class="stat-icon">🌐</div>
                 <div class="stat-info">
-                    <h3>Total Visitas</h3>
+                    <h4>Total Visitas</h3>
                     <p class="stat-number"><%= estadisticas.totalVisitas %></p>
                     <p class="stat-label">Dispositivos han visitado</p>
                 </div>

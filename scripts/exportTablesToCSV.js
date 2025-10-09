@@ -9,44 +9,6 @@ const client = new Client({
 
 const exportFolder = path.join(__dirname, '../exports');
 
-// Función para formatear CSV con mejor separación
-function formatCSV(rows) {
-  if (rows.length === 0) return '';
-  
-  const headers = Object.keys(rows[0]);
-  
-  // Calcular el ancho máximo para cada columna
-  const columnWidths = headers.map(header => {
-    const maxDataWidth = Math.max(...rows.map(row => 
-      String(row[header] || '').length
-    ));
-    return Math.max(header.length, maxDataWidth);
-  });
-  
-  // Crear línea de separación
-  const separator = columnWidths.map(width => '-'.repeat(width + 2)).join('+');
-  
-  // Crear encabezados formateados
-  const formattedHeaders = headers.map((header, i) => 
-    ` ${header.padEnd(columnWidths[i])} `
-  ).join('|');
-  
-  // Crear filas de datos formateadas
-  const formattedRows = rows.map(row =>
-    headers.map((header, i) => 
-      ` ${String(row[header] || '').padEnd(columnWidths[i])} `
-    ).join('|')
-  );
-  
-  // Combinar todo
-  return [
-    formattedHeaders,
-    separator,
-    ...formattedRows,
-    separator
-  ].join('\n');
-}
-
 // Función para crear CSV con columnas bien separadas
 function createFormattedCSV(rows, filename) {
   if (rows.length === 0) return;
@@ -92,8 +54,8 @@ function createStandardCSV(rows, filename) {
 
     console.log('📊 Exportando datos enriquecidos...\n');
 
-    // 1. Exportar respuestas de funcionarios con información detallada (FORMATEADO)
-    console.log('📦 Exportando respuestas de funcionarios (formateado)');
+    // 1. Exportar respuestas de funcionarios AGRUPADAS POR PARTICIPANTE
+    console.log('📦 Exportando respuestas de funcionarios (agrupadas por participante)');
     const respuestasFuncionariosDetalladas = await client.query(`
       SELECT 
         rf.id AS "ID Respuesta",
@@ -114,7 +76,16 @@ function createStandardCSV(rows, filename) {
       LEFT JOIN participantes p ON rf.participante_id = p.id
       JOIN funcionarios f ON rf.funcionario_id = f.id
       JOIN preguntas_funcionarios pf ON rf.pregunta_id = pf.id
-      ORDER BY rf.fecha DESC
+      ORDER BY 
+        -- Primero ordenar por nombre del participante
+        CASE 
+          WHEN p.nombre IS NULL OR p.nombre = '' THEN 'ZZZ_Anónimo'
+          ELSE p.nombre 
+        END ASC,
+        -- Luego por funcionario
+        f.nombre ASC,
+        -- Finalmente por categoría de pregunta
+        pf.categoria ASC
     `);
 
     if (respuestasFuncionariosDetalladas.rows.length > 0) {
@@ -130,8 +101,8 @@ function createStandardCSV(rows, filename) {
       console.log('  ⚠️ No hay respuestas de funcionarios');
     }
 
-    // 2. Exportar respuestas administrativas con información detallada (FORMATEADO)
-    console.log('\n📦 Exportando respuestas administrativas (formateado)');
+    // 2. Exportar respuestas administrativas AGRUPADAS POR PARTICIPANTE
+    console.log('\n📦 Exportando respuestas administrativas (agrupadas por participante)');
     const respuestasAdministrativasDetalladas = await client.query(`
       SELECT 
         ra.id AS "ID Respuesta",
@@ -149,7 +120,16 @@ function createStandardCSV(rows, filename) {
       LEFT JOIN participantes p ON ra.participante_id = p.id
       JOIN secciones_administrativas sa ON ra.seccion_id = sa.id
       JOIN preguntas_administrativas pa ON ra.pregunta_id = pa.id
-      ORDER BY ra.fecha DESC
+      ORDER BY 
+        -- Primero ordenar por nombre del participante
+        CASE 
+          WHEN p.nombre IS NULL OR p.nombre = '' THEN 'ZZZ_Anónimo'
+          ELSE p.nombre 
+        END ASC,
+        -- Luego por sección administrativa
+        sa.nombre ASC,
+        -- Finalmente por pregunta
+        pa.texto ASC
     `);
 
     if (respuestasAdministrativasDetalladas.rows.length > 0) {
@@ -165,8 +145,8 @@ function createStandardCSV(rows, filename) {
       console.log('  ⚠️ No hay respuestas administrativas');
     }
 
-    // 3. Exportar resumen de participantes (FORMATEADO)
-    console.log('\n📦 Exportando resumen de participantes (formateado)');
+    // 3. Exportar resumen de participantes (ORDENADO POR NOMBRE)
+    console.log('\n📦 Exportando resumen de participantes (ordenado por nombre)');
     const resumenParticipantes = await client.query(`
       SELECT 
         p.id AS "ID Participante",
@@ -184,7 +164,11 @@ function createStandardCSV(rows, filename) {
       LEFT JOIN respuestas_funcionarios rf ON p.id = rf.participante_id
       LEFT JOIN respuestas_administrativas ra ON p.id = ra.participante_id
       GROUP BY p.id, p.nombre, p.dispositivo_id, p.fecha_registro
-      ORDER BY p.fecha_registro DESC
+      ORDER BY 
+        CASE 
+          WHEN p.nombre IS NULL OR p.nombre = '' THEN 'ZZZ_Anónimo'
+          ELSE p.nombre 
+        END ASC
     `);
 
     if (resumenParticipantes.rows.length > 0) {
@@ -199,10 +183,10 @@ function createStandardCSV(rows, filename) {
     // 4. Exportar tablas básicas (formateadas)
     console.log('\n📦 Exportando tablas básicas de referencia (formateadas)');
     const tablasBasicas = [
-      { nombre: 'funcionarios', query: 'SELECT id AS "ID", nombre AS "Nombre", cargo AS "Cargo", seccion AS "Sección" FROM funcionarios ORDER BY id' },
-      { nombre: 'preguntas_funcionarios', query: 'SELECT id AS "ID", texto AS "Pregunta", categoria AS "Categoría" FROM preguntas_funcionarios ORDER BY id' },
-      { nombre: 'secciones_administrativas', query: 'SELECT id AS "ID", nombre AS "Nombre Sección" FROM secciones_administrativas ORDER BY id' },
-      { nombre: 'preguntas_administrativas', query: 'SELECT id AS "ID", texto AS "Pregunta", seccion_id AS "ID Sección" FROM preguntas_administrativas ORDER BY seccion_id, id' }
+      { nombre: 'funcionarios', query: 'SELECT id AS "ID", nombre AS "Nombre", cargo AS "Cargo", seccion AS "Sección" FROM funcionarios ORDER BY nombre ASC' },
+      { nombre: 'preguntas_funcionarios', query: 'SELECT id AS "ID", texto AS "Pregunta", categoria AS "Categoría" FROM preguntas_funcionarios ORDER BY categoria ASC, texto ASC' },
+      { nombre: 'secciones_administrativas', query: 'SELECT id AS "ID", nombre AS "Nombre Sección" FROM secciones_administrativas ORDER BY nombre ASC' },
+      { nombre: 'preguntas_administrativas', query: 'SELECT id AS "ID", texto AS "Pregunta", seccion_id AS "ID Sección" FROM preguntas_administrativas ORDER BY seccion_id ASC, texto ASC' }
     ];
 
     for (const tabla of tablasBasicas) {
@@ -220,29 +204,37 @@ function createStandardCSV(rows, filename) {
       console.log(`    ✅ Exportado: exports/${tabla.nombre}_excel.csv`);
     }
 
-    // 5. Exportar reporte consolidado (FORMATEADO)
-    console.log('\n📦 Generando reporte consolidado (formateado)');
-    const reporteConsolidado = await client.query(`
+    // 5. Exportar reporte consolidado por participante
+    console.log('\n📦 Generando reporte consolidado por participante');
+    const reporteConsolidadoParticipante = await client.query(`
       SELECT 
-        'Funcionarios' AS "Tipo Evaluación",
-        COUNT(*) AS "Total Respuestas",
-        COUNT(DISTINCT participante_id) AS "Total Participantes",
-        COUNT(DISTINCT funcionario_id) AS "Funcionarios Evaluados"
-      FROM respuestas_funcionarios
-      UNION ALL
-      SELECT 
-        'Administrativa' AS "Tipo Evaluación",
-        COUNT(*) AS "Total Respuestas",
-        COUNT(DISTINCT participante_id) AS "Total Participantes",
-        COUNT(DISTINCT seccion_id) AS "Secciones Evaluadas"
-      FROM respuestas_administrativas
+        p.nombre AS "Nombre Participante",
+        p.dispositivo_id AS "ID Dispositivo",
+        CASE 
+          WHEN p.nombre IS NULL OR p.nombre = '' THEN 'Anónimo'
+          ELSE 'Con nombre'
+        END AS "Tipo Participación",
+        COUNT(DISTINCT rf.id) AS "Total Respuestas Funcionarios",
+        COUNT(DISTINCT ra.id) AS "Total Respuestas Administrativas",
+        (COUNT(DISTINCT rf.id) + COUNT(DISTINCT ra.id)) AS "Total Respuestas",
+        TO_CHAR(MIN(COALESCE(rf.fecha, ra.fecha)), 'DD/MM/YYYY HH24:MI:SS') AS "Primera Respuesta",
+        TO_CHAR(MAX(COALESCE(rf.fecha, ra.fecha)), 'DD/MM/YYYY HH24:MI:SS') AS "Última Respuesta"
+      FROM participantes p
+      LEFT JOIN respuestas_funcionarios rf ON p.id = rf.participante_id
+      LEFT JOIN respuestas_administrativas ra ON p.id = ra.participante_id
+      GROUP BY p.id, p.nombre, p.dispositivo_id
+      ORDER BY 
+        CASE 
+          WHEN p.nombre IS NULL OR p.nombre = '' THEN 'ZZZ_Anónimo'
+          ELSE p.nombre 
+        END ASC
     `);
 
-    if (reporteConsolidado.rows.length > 0) {
-      createFormattedCSV(reporteConsolidado.rows, 'reporte_consolidado_formateado.txt');
-      createStandardCSV(reporteConsolidado.rows, 'reporte_consolidado_excel.csv');
-      console.log(`  ✅ Exportado: exports/reporte_consolidado_formateado.txt`);
-      console.log(`  ✅ Exportado: exports/reporte_consolidado_excel.csv`);
+    if (reporteConsolidadoParticipante.rows.length > 0) {
+      createFormattedCSV(reporteConsolidadoParticipante.rows, 'reporte_consolidado_participante_formateado.txt');
+      createStandardCSV(reporteConsolidadoParticipante.rows, 'reporte_consolidado_participante_excel.csv');
+      console.log(`  ✅ Exportado: exports/reporte_consolidado_participante_formateado.txt`);
+      console.log(`  ✅ Exportado: exports/reporte_consolidado_participante_excel.csv`);
     }
 
     console.log('\n🎉 Exportación completada exitosamente!');
@@ -250,11 +242,10 @@ function createStandardCSV(rows, filename) {
     console.log('   📄 Archivos .txt - Formato legible con columnas separadas');
     console.log('   📊 Archivos .csv - Formato Excel compatible');
     console.log('\n📋 Archivos principales:');
-    console.log('   👥 respuestas_funcionarios_* - Evaluaciones de funcionarios');
-    console.log('   🏢 respuestas_administrativas_* - Evaluaciones administrativas');
+    console.log('   👥 respuestas_funcionarios_* - Evaluaciones de funcionarios (agrupadas por participante)');
+    console.log('   🏢 respuestas_administrativas_* - Evaluaciones administrativas (agrupadas por participante)');
     console.log('   📈 resumen_participantes_* - Resumen por participante');
-    console.log('   📋 Tablas de referencia');
-    console.log('   📊 reporte_consolidado_* - Estadísticas generales');
+    console.log('   📊 reporte_consolidado_participante_* - Reporte consolidado por participante');
 
   } catch (err) {
     console.error('❌ Error:', err.message);

@@ -368,8 +368,6 @@ module.exports.getResultadosAdministrativos = async () => {
     }
 };
 
-// En db/queries.js - AGREGAR estas nuevas funciones:
-
 // Obtener número de participantes únicos
 module.exports.getTotalParticipantes = async () => {
     const result = await pool.query('SELECT COUNT(DISTINCT id) FROM participantes');
@@ -402,6 +400,6 @@ module.exports.getTotalVisitas = async () => {
     return parseInt(result.rows[0].count);
 };
 
-// AGREGAR estas líneas al final del archivo: DEEPSEEK
+// AGREGAR estas líneas al final del archivo
 module.exports.pool = pool;
 module.exports.query = (text, params) => pool.query(text, params);

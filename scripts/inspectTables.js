@@ -41,5 +41,3 @@ const tablas = [
   }
 })();
 
-// para correrlo:
-// node scripts/inspectTables.js

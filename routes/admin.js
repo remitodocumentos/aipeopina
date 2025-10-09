@@ -279,8 +279,7 @@ router.get('/resetear-db', authMiddleware.isAuthenticated, (req, res) => {
     });
 });
 
-// Procesar reseteo de base de datos - VERSION CORREGIDA
-// REEMPLAZAR completamente la ruta POST /resetear-db con esta versión mejorada:
+// Procesar reseteo de base de datos 
 
 router.post('/resetear-db', authMiddleware.isAuthenticated, async (req, res) => {
     const client = await pool.connect();

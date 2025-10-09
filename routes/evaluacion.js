@@ -1,4 +1,4 @@
-// routes/evaluacion.js - VERSION MEJORADA CON BLOQUEO DE MULTIPLES PARTICIPACIONES
+// routes/evaluacion.js 
 const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');
@@ -24,8 +24,7 @@ router.get('/funcionarios',
     }
 );
 
-// Procesar respuestas de funcionarios - CON VERIFICACIÓN DE PARTICIPACIÓN PREVIA
-// En la ruta POST /funcionarios - MEJORAR manejo de errores:
+// Procesar respuestas de funcionarios 
 router.post('/funcionarios', async (req, res) => {
     try {
         console.log('=== GUARDANDO RESPUESTAS FUNCIONARIOS ===');

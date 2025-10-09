@@ -1,5 +1,4 @@
 //middleware/auth.js
-// Middleware para verificar si el usuario está autenticado
 module.exports = {
     isAuthenticated: (req, res, next) => {
         console.log('=== DEBUG AUTH MIDDLEWARE ===');

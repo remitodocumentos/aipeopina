@@ -1,10 +1,10 @@
 ID | Nombre Sección
 ---+---------------
+7 | Calidad de vida en general
+6 | Desarrollo económico y competitividad
+5 | Desarrollo social y bienestar
+3 | Desarrollo urbano y territorial
 1 | Gestión y administración pública
 2 | Infraestructura y servicios públicos
-3 | Desarrollo urbano y territorial
 4 | Medio ambiente y sostenibilidad
-5 | Desarrollo social y bienestar
-6 | Desarrollo económico y competitividad
-7 | Calidad de vida en general
 8 | Vulneración del bienestar social y la convivencia ciudadana

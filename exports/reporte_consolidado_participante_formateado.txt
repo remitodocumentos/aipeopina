@@ -1,0 +1,3 @@
+Nombre Participante | ID Dispositivo | Tipo Participación | Total Respuestas Funcionarios | Total Respuestas Administrativas | Total Respuestas | Primera Respuesta | Última Respuesta
+--------------------+----------------+--------------------+-------------------------------+----------------------------------+------------------+-------------------+-----------------
+Genaro García | 7d197fb4-d116-4126-94b9-e815a73fc400 | Con nombre | 130 | 74 | 204 | 09/10/2025 18:39:34 | 09/10/2025 18:39:34
