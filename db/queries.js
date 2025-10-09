@@ -8,12 +8,12 @@ const pool = new Pool({
 });
 
 // Función para registrar un participante
-// Mejorar la función registrarParticipante para evitar duplicados
-module.exports.registrarParticipante = async (dispositivo_id, nombre) => {
+module.exports.registrarParticipante = async (dispositivo_id, nombre, tipoFormulario = 'funcionarios') => {
     try {
         console.log('=== REGISTRANDO PARTICIPANTE ===');
         console.log('Dispositivo ID:', dispositivo_id);
         console.log('Nombre:', nombre);
+        console.log('Tipo Formulario:', tipoFormulario);
         
         // Validar que dispositivo_id no sea nulo o vacío
         if (!dispositivo_id || dispositivo_id.trim() === '') {
@@ -30,23 +30,34 @@ module.exports.registrarParticipante = async (dispositivo_id, nombre) => {
             console.log('✅ Participante ya existe, actualizando nombre si es necesario...');
             const participanteId = existente.rows[0].id;
             
-            // Verificar si ya tiene respuestas (doble verificación)
-            const respuestasFunc = await pool.query(
-                'SELECT COUNT(*) FROM respuestas_funcionarios WHERE participante_id = $1',
-                [participanteId]
-            );
-            
-            const respuestasAdmin = await pool.query(
-                'SELECT COUNT(*) FROM respuestas_administrativas WHERE participante_id = $1',
-                [participanteId]
-            );
-            
-            const totalRespuestas = 
-                parseInt(respuestasFunc.rows[0].count) + 
-                parseInt(respuestasAdmin.rows[0].count);
-            
-            if (totalRespuestas > 0) {
-                throw new Error('Este dispositivo ya ha participado y no puede modificar sus respuestas');
+            // 👇 VERIFICACIÓN MEJORADA - Dependiendo del tipo de formulario
+            if (tipoFormulario === 'funcionarios') {
+                // Para formulario de funcionarios: verificar si YA TIENE respuestas de funcionarios
+                const respuestasFunc = await pool.query(
+                    'SELECT COUNT(*) FROM respuestas_funcionarios WHERE participante_id = $1',
+                    [participanteId]
+                );
+                
+                const totalRespuestasFunc = parseInt(respuestasFunc.rows[0].count);
+                console.log(`Respuestas de funcionarios existentes: ${totalRespuestasFunc}`);
+                
+                if (totalRespuestasFunc > 0) {
+                    throw new Error('Este dispositivo ya ha completado la evaluación de funcionarios');
+                }
+                
+            } else if (tipoFormulario === 'administrativas') {
+                // Para formulario administrativo: verificar si YA TIENE respuestas administrativas
+                const respuestasAdmin = await pool.query(
+                    'SELECT COUNT(*) FROM respuestas_administrativas WHERE participante_id = $1',
+                    [participanteId]
+                );
+                
+                const totalRespuestasAdmin = parseInt(respuestasAdmin.rows[0].count);
+                console.log(`Respuestas administrativas existentes: ${totalRespuestasAdmin}`);
+                
+                if (totalRespuestasAdmin > 0) {
+                    throw new Error('Este dispositivo ya ha completado la evaluación administrativa');
+                }
             }
             
             // Actualizar el nombre si se proporcionó y es diferente
