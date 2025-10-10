@@ -229,7 +229,7 @@ router.post('/administrativo', async (req, res) => {
             
             if (totalRespuestas > 0) {
                 console.log('❌ BLOQUEO: Intento de reenvío detectado. Dispositivo ya participó.');
-                return res.status(400).json({
+                return res.redirect('/evaluacion/ya-participo')({
                     success: false,
                     message: 'Ya has participado anteriormente. No puedes enviar respuestas múltiples veces desde el mismo dispositivo.'
                 });
@@ -255,7 +255,7 @@ router.post('/administrativo', async (req, res) => {
         
         // Manejar específicamente el error de "ya participó"
         if (error.message.includes('ya ha participado')) {
-            return res.status(400).json({
+            return res.redirect('/evaluacion/ya-participo')({
                 success: false,
                 message: 'Este dispositivo ya ha participado y no puede enviar respuestas nuevamente.'
             });

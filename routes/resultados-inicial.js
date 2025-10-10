@@ -1,4 +1,4 @@
-// routes/resultados-final.js
+// routes/resultados.js - VERSION MEJORADA Y SEGURA
 const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');
@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
             });
         }
         
-        res.render('resultados-final', { 
+        res.render('resultados', { 
             resultadosFuncionarios, 
             resultadosAdministrativos,
             mensaje: null
