@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
             });
         }
         
-        res.render('resultados', { 
+        res.render('resultados-inicial', { 
             resultadosFuncionarios, 
             resultadosAdministrativos,
             mensaje: null
