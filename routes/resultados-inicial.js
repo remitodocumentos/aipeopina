@@ -1,4 +1,4 @@
-// routes/resultados.js - VERSION MEJORADA Y SEGURA
+// routes/resultados.js 
 const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');

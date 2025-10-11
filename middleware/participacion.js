@@ -43,7 +43,7 @@ module.exports = {
                         // Si tiene ALGUNA respuesta, redirigir a "ya participó"
                         if (totalRespuestas > 0) {
                             console.log('❌ Dispositivo ya participó, redirigiendo...');
-                            return res.redirect('/ya-participo');
+                            return res.redirect('/ya-participo?tipo=general');
                         }
                     }
                 }

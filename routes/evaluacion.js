@@ -1,30 +1,38 @@
-// routes/evaluacion.js 
+//routes/evaluacion.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');
 const participacionMiddleware = require('../middleware/participacion');
 
-// Middleware para verificar si el dispositivo ya ha participado
+// Middleware para verificar participación
+router.use(participacionMiddleware.generarDispositivoId);
+
+// FORMULARIO DE FUNCIONARIOS
 router.get('/funcionarios', 
     participacionMiddleware.verificarParticipacion,
-    participacionMiddleware.generarDispositivoId,
     async (req, res) => {
         try {
-            const funcionarios = await db.getFuncionarios();
-            const preguntas = await db.getPreguntasFuncionarios();
+            const [funcionarios, preguntas] = await Promise.all([
+                db.getFuncionarios(),
+                db.getPreguntasFuncionarios()
+            ]);
+            
             res.render('funcionarios', { 
                 funcionarios, 
                 preguntas,
                 dispositivoId: req.dispositivoId 
             });
         } catch (error) {
-            console.error('Error al cargar el formulario de funcionarios:', error);
-            res.status(500).send('Error al cargar el formulario');
+            console.error('Error al cargar formulario de funcionarios:', error);
+            res.status(500).render('error', {
+                message: 'Error al cargar el formulario',
+                details: error.message
+            });
         }
     }
 );
 
-// Procesar respuestas de funcionarios 
+// PROCESAR FUNCIONARIOS - CORREGIDO
 router.post('/funcionarios', async (req, res) => {
     try {
         console.log('=== GUARDANDO RESPUESTAS FUNCIONARIOS ===');
@@ -33,14 +41,14 @@ router.post('/funcionarios', async (req, res) => {
         
         // Validar que dispositivo_id esté presente
         if (!dispositivo_id) {
-            console.error('Error: dispositivo_id no está presente en la petición');
+            console.error('Error: dispositivo_id no está presente');
             return res.status(400).render('error', {
                 message: 'No se pudo identificar tu dispositivo',
                 details: 'Por favor, recarga la página e intenta nuevamente.'
             });
         }
 
-        // VERIFICACIÓN CRÍTICA: Comprobar que el dispositivo no haya participado ya EN FUNCIONARIOS
+        // VERIFICACIÓN DE PARTICIPACIÓN PREVIA
         console.log('🔍 Verificando si el dispositivo ya participó en funcionarios...');
         const verificacionParticipante = await db.query(
             'SELECT id FROM participantes WHERE dispositivo_id = $1', 
@@ -57,33 +65,31 @@ router.post('/funcionarios', async (req, res) => {
             );
             
             const totalRespuestas = parseInt(respuestasExistentes.rows[0].count);
-            console.log(`Respuestas de funcionarios existentes encontradas: ${totalRespuestas}`);
+            console.log(`Respuestas de funcionarios existentes: ${totalRespuestas}`);
             
             if (totalRespuestas > 0) {
-                console.log('❌ BLOQUEO: Intento de reenvío detectado. Dispositivo ya participó en funcionarios.');
-                // 👇 REDIRIGIR en lugar de devolver JSON
+                console.log('❌ BLOQUEO: Dispositivo ya participó en funcionarios.');
                 return res.redirect('/ya-participo?tipo=funcionarios');
             }
         }
         
-        // Registrar participante - ESPECIFICAR que es para funcionarios
+        // REGISTRAR Y GUARDAR (código normal)
         console.log('✅ Registrando participante para funcionarios...');
         const participanteResult = await db.registrarParticipante(dispositivo_id, nombre, 'funcionarios');
         const participanteId = participanteResult.rows[0].id;
-        console.log('Participante registrado con ID:', participanteId);
         
-        // Guardar respuestas con ID del participante
         console.log('💾 Guardando respuestas de funcionarios...');
         await db.saveRespuestasFuncionarios(req.body, participanteId);
-        console.log('✅ Respuestas de funcionarios guardadas correctamente');
+        console.log('✅ Respuestas guardadas correctamente');
         
-        // Redirigir a la página de confirmación
+        // Redirigir a confirmación
         res.redirect('/evaluacion/confirmacion');
+        
     } catch (error) {
         console.error('❌ Error al guardar respuestas de funcionarios:', error);
         
-        // 👇 MANEJAR ERRORES CON PÁGINAS EN LUGAR DE JSON
-        if (error.message.includes('ya ha completado')) {
+        // MANEJAR ERRORES CON REDIRECCIONES HTML
+        if (error.message.includes('ya ha completado') || error.message.includes('ya participó')) {
             return res.redirect('/ya-participo?tipo=funcionarios');
         }
         
@@ -94,23 +100,48 @@ router.post('/funcionarios', async (req, res) => {
     }
 });
 
-// En la ruta POST /administrativo - MEJORAR manejo de errores:
+// FORMULARIO ADMINISTRATIVO
+router.get('/administrativo', 
+    participacionMiddleware.verificarParticipacion,
+    async (req, res) => {
+        try {
+            const [secciones, preguntas] = await Promise.all([
+                db.getSeccionesAdministrativas(),
+                db.getPreguntasAdministrativas()
+            ]);
+            
+            res.render('administrativo', { 
+                secciones, 
+                preguntas,
+                dispositivoId: req.dispositivoId 
+            });
+        } catch (error) {
+            console.error('Error al cargar formulario administrativo:', error);
+            res.status(500).render('error', {
+                message: 'Error al cargar el formulario',
+                details: error.message
+            });
+        }
+    }
+);
+
+// PROCESAR ADMINISTRATIVO - CORREGIDO
 router.post('/administrativo', async (req, res) => {
     try {
         console.log('=== GUARDANDO RESPUESTAS ADMINISTRATIVAS ===');
-
+        
         const { nombre, dispositivo_id } = req.body;
         
         // Validar que dispositivo_id esté presente
         if (!dispositivo_id) {
-            console.error('❌ Error: dispositivo_id no presente en la petición');
+            console.error('❌ Error: dispositivo_id no presente');
             return res.status(400).render('error', {
                 message: 'No se pudo identificar tu dispositivo',
                 details: 'Por favor, recarga la página e intenta nuevamente.'
             });
         }
 
-        // VERIFICACIÓN CRÍTICA: Comprobar que el dispositivo no haya participado ya EN ADMINISTRATIVAS
+        // VERIFICACIÓN DE PARTICIPACIÓN PREVIA
         console.log('🔍 Verificando si el dispositivo ya participó en administrativas...');
         const verificacionParticipante = await db.query(
             'SELECT id FROM participantes WHERE dispositivo_id = $1', 
@@ -127,34 +158,31 @@ router.post('/administrativo', async (req, res) => {
             );
             
             const totalRespuestas = parseInt(respuestasExistentes.rows[0].count);
-            console.log(`Respuestas administrativas existentes encontradas: ${totalRespuestas}`);
+            console.log(`Respuestas administrativas existentes: ${totalRespuestas}`);
             
             if (totalRespuestas > 0) {
-                console.log('❌ BLOQUEO: Intento de reenvío detectado. Dispositivo ya participó en administrativas.');
-                // 👇 REDIRIGIR en lugar de devolver JSON
+                console.log('❌ BLOQUEO: Dispositivo ya participó en administrativas.');
                 return res.redirect('/ya-participo?tipo=administrativas');
             }
         }
         
-        console.log('✅ Dispositivo ID:', dispositivo_id);
-        console.log('✅ Nombre:', nombre);
-
-        // Registrar participante - ESPECIFICAR que es para administrativas
+        // REGISTRAR Y GUARDAR (código normal)
+        console.log('✅ Registrando participante para administrativas...');
         const participanteResult = await db.registrarParticipante(dispositivo_id, nombre, 'administrativas');
         const participanteId = participanteResult.rows[0].id;
-        console.log('✅ Participante ID:', participanteId);
-
-        // Guardar respuestas con ID del participante
+        
+        console.log('💾 Guardando respuestas administrativas...');
         await db.saveRespuestasAdministrativas(req.body, participanteId);
         console.log('✅ Respuestas administrativas guardadas');
         
-        // Redirigir a la página de confirmación administrativa
+        // Redirigir a confirmación administrativa
         res.redirect('/evaluacion/confirmacion-admin');
+        
     } catch (error) {
         console.error('❌ Error al guardar respuestas administrativas:', error);
         
-        // 👇 MANEJAR ERRORES CON PÁGINAS EN LUGAR DE JSON
-        if (error.message.includes('ya ha completado')) {
+        // MANEJAR ERRORES CON REDIRECCIONES HTML
+        if (error.message.includes('ya ha completado') || error.message.includes('ya participó')) {
             return res.redirect('/ya-participo?tipo=administrativas');
         }
         
@@ -165,110 +193,11 @@ router.post('/administrativo', async (req, res) => {
     }
 });
 
-// Página de confirmación
+// PÁGINAS DE CONFIRMACIÓN (se mantienen igual)
 router.get('/confirmacion', (req, res) => {
     res.render('confirmacion');
 });
 
-// Middleware para verificar si el dispositivo ya ha participado
-router.get('/administrativo', 
-    participacionMiddleware.verificarParticipacion,
-    participacionMiddleware.generarDispositivoId,
-    async (req, res) => {
-        try {
-            const secciones = await db.getSeccionesAdministrativas();
-            const preguntas = await db.getPreguntasAdministrativas();
-            res.render('administrativo', { 
-                secciones, 
-                preguntas,
-                dispositivoId: req.dispositivoId 
-            });
-        } catch (error) {
-            console.error('Error al cargar el formulario administrativo:', error);
-            res.status(500).send('Error al cargar el formulario');
-        }
-    }
-);
-
-// Procesar respuestas administrativas - CON VERIFICACIÓN DE PARTICIPACIÓN PREVIA
-router.post('/administrativo', async (req, res) => {
-    try {
-        console.log('=== GUARDANDO RESPUESTAS ADMINISTRATIVAS ===');
-        console.log('Body completo recibido:', JSON.stringify(req.body, null, 2));
-        console.log('Dispositivo_id recibido:', req.body.dispositivo_id);
-
-        const { nombre, dispositivo_id } = req.body;
-        
-        // Validar que dispositivo_id esté presente
-        if (!dispositivo_id) {
-            console.error('❌ Error: dispositivo_id no presente en la petición');
-            return res.status(400).json({
-                success: false,
-                message: 'No se pudo identificar tu dispositivo. Por favor, recarga la página e intenta nuevamente.'
-            });
-        }
-
-        // VERIFICACIÓN CRÍTICA: Comprobar que el dispositivo no haya participado ya
-        console.log('🔍 Verificando si el dispositivo ya participó...');
-        const verificacionParticipante = await db.query(
-            'SELECT id FROM participantes WHERE dispositivo_id = $1', 
-            [dispositivo_id]
-        );
-        
-        if (verificacionParticipante.rows.length > 0) {
-            const participanteId = verificacionParticipante.rows[0].id;
-            
-            // Verificar si YA TIENE respuestas administrativas
-            const respuestasExistentes = await db.query(
-                'SELECT COUNT(*) as count FROM respuestas_administrativas WHERE participante_id = $1',
-                [participanteId]
-            );
-            
-            const totalRespuestas = parseInt(respuestasExistentes.rows[0].count);
-            console.log(`Respuestas administrativas existentes encontradas: ${totalRespuestas}`);
-            
-            if (totalRespuestas > 0) {
-                console.log('❌ BLOQUEO: Intento de reenvío detectado. Dispositivo ya participó.');
-                return res.status(400).json({
-                    success: false,
-                    message: 'Ya has participado anteriormente. No puedes enviar respuestas múltiples veces desde el mismo dispositivo.'
-                });
-            }
-        }
-        
-        console.log('✅ Dispositivo ID:', dispositivo_id);
-        console.log('✅ Nombre:', nombre);
-
-        // Registrar participante
-        const participanteResult = await db.registrarParticipante(dispositivo_id, nombre);
-        const participanteId = participanteResult.rows[0].id;
-        console.log('✅ Participante ID:', participanteId);
-
-        // Guardar respuestas con ID del participante
-        await db.saveRespuestasAdministrativas(req.body, participanteId);
-        console.log('✅ Respuestas administrativas guardadas');
-        
-        // Redirigir a la página de confirmación administrativa
-        res.redirect('/evaluacion/confirmacion-admin');
-    } catch (error) {
-        console.error('❌ Error al guardar respuestas administrativas:', error);
-        
-        // Manejar específicamente el error de "ya participó"
-        if (error.message.includes('ya ha participado')) {
-            return res.status(400).json({
-                success: false,
-                message: 'Este dispositivo ya ha participado y no puede enviar respuestas nuevamente.'
-            });
-        }
-       
-        res.status(500).json({
-            success: false,
-            message: 'Error al guardar tus respuestas: ' + error.message
-        });
-    }
-});
-
-// Página de confirmación administrativa
 router.get('/confirmacion-admin', (req, res) => {
     res.render('confirmacion-admin');
 });

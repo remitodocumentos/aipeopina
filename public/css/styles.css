@@ -340,3 +340,98 @@ footer {
 .progreso-fill.administrativas {
     background: linear-gradient(90deg, #2196F3, #1976D2);
 }
+
+/* ESTILOS PARA SECCIÓN DE DESCARGA */
+.descargas {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    margin: 30px 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.descargas h3 {
+    color: #2c5aa0;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+}
+
+.descargas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin: 30px 0;
+}
+
+.descarga-card {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 10px;
+    border-left: 4px solid #2c5aa0;
+    transition: all 0.3s ease;
+}
+
+.descarga-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.descarga-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.descarga-card h4 {
+    color: #2c5aa0;
+    margin-bottom: 10px;
+}
+
+.descarga-card p {
+    color: #666;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.btn-descarga {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 25px;
+    background: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-descarga:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.info-descarga {
+    background: #e8f4fd;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    border-left: 4px solid #2196F3;
+}
+
+.info-descarga p {
+    margin: 5px 0;
+    color: #1976D2;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .descargas-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .descarga-card {
+        padding: 20px;
+    }
+}

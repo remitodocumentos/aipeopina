@@ -1,5 +1,4 @@
 -- db/migrations.sql
--- migrations.sql CORREGIDO
 CREATE TABLE IF NOT EXISTS funcionarios (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,

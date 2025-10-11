@@ -1,50 +1,41 @@
-// routes/resultados.js - VERSION MEJORADA Y SEGURA
+//routes/resultados.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');
 
-// Página de resultados
-router.get('/', async (req, res) => {
+// Ruta única para TODOS los resultados
+router.get('/:tipo?', async (req, res) => {
     try {
-        console.log('=== CARGANDO PÁGINA DE RESULTADOS ===');
+        const tipo = req.params.tipo || 'general'; // general, inicial, final
         
+        console.log(`=== CARGANDO RESULTADOS TIPO: ${tipo} ===`);
+        
+        // Cargar resultados (misma lógica para todos)
         let resultadosFuncionarios = [];
         let resultadosAdministrativos = [];
         
         try {
             resultadosFuncionarios = await db.getResultadosFuncionarios();
-            console.log(`✅ Resultados funcionarios: ${resultadosFuncionarios.length} registros`);
-        } catch (error) {
-            console.error('❌ Error cargando resultados de funcionarios:', error.message);
-            // Continuar sin resultados de funcionarios
-        }
-        
-        try {
             resultadosAdministrativos = await db.getResultadosAdministrativos();
-            console.log(`✅ Resultados administrativos: ${resultadosAdministrativos.length} registros`);
         } catch (error) {
-            console.error('❌ Error cargando resultados administrativos:', error.message);
-            // Continuar sin resultados administrativos
+            console.error('Error cargando resultados:', error);
         }
         
-        // Si no hay datos de ningún tipo, mostrar mensaje amigable
-        if (resultadosFuncionarios.length === 0 && resultadosAdministrativos.length === 0) {
-            console.log('ℹ️ No hay datos de resultados disponibles aún');
-            return res.render('resultados', {
-                resultadosFuncionarios: [],
-                resultadosAdministrativos: [],
-                mensaje: 'Aún no hay resultados disponibles. Sé el primero en participar.'
-            });
-        }
+        // Determinar si mostrar mensaje de "sin datos"
+        const mensaje = (resultadosFuncionarios.length === 0 && resultadosAdministrativos.length === 0) 
+            ? 'Aún no hay resultados disponibles. Sé el primero en participar.'
+            : null;
         
-        res.render('resultados', { 
+        // Renderizar MISMA plantilla con diferentes variables
+        res.render('resultados', {
+            tipoVista: tipo, // 'inicial', 'final', 'general'
             resultadosFuncionarios, 
             resultadosAdministrativos,
-            mensaje: null
+            mensaje
         });
         
     } catch (error) {
-        console.error('❌ ERROR CRÍTICO AL CARGAR RESULTADOS:', error);
+        console.error('❌ ERROR al cargar resultados:', error);
         res.status(500).render('error', {
             message: 'Error al cargar los resultados',
             error: process.env.NODE_ENV === 'production' ? {} : error

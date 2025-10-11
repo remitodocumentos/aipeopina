@@ -1,442 +1,238 @@
-<%- include('partials/header-two') %>
-
-<div class="resultados-container">
-    <h2>Resultados Consolidados</h2>
-    
-    <% if (mensaje) { %>
-        <div class="sin-resultados">
-            <h3>📊 Resultados en Proceso</h3>
-            <p><%= mensaje %></p>
-            <div class="acciones-resultados">
-                <a href="/evaluacion/funcionarios" class="btn-primary">Ser el primero en participar</a>
-                <a href="/" class="btn-secondary">Volver al inicio</a>
-            </div>
-        </div>
-    <% } else { %>
-    
-    <section class="resultados-funcionarios">
-        <h3>Calificación de Funcionarios</h3>
-        
-        <% if (!resultadosFuncionarios || resultadosFuncionarios.length === 0) { %>
-            <div class="sin-datos">
-                <p>📝 Aún no hay calificaciones para funcionarios.</p>
-                <p>Sé el primero en evaluar a los funcionarios municipales.</p>
-            </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <% if (tipoVista === 'inicial') { %>
+            Resultados Parciales - Aipe Opina
+        <% } else if (tipoVista === 'final') { %>
+            Resultados Completos - Aipe Opina
         <% } else { %>
-            <% let funcionarioActual = null; %>
-            <% let preguntaActual = null; %>
-            <% let funcionarioCount = 0; %>
+            Resultados - Aipe Opina
+        <% } %>
+    </title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                <% if (tipoVista === 'inicial') { %>
+                    Así opina la comunidad de Aipe
+                <% } else if (tipoVista === 'final') { %>
+                    Resultados Consolidados
+                <% } else { %>
+                    Resultados de la Evaluación
+                <% } %>
+            </h1>
             
-            <% resultadosFuncionarios.forEach(resultado => { %>
-                <% if (funcionarioActual !== resultado.funcionario_id) { %>
+            <% if (tipoVista === 'inicial') { %>
+                <h2>Evaluación de Funcionarios Completada</h2>
+            <% } else if (tipoVista === 'final') { %>
+                <h2>Evaluación Completa Finalizada</h2>
+            <% } %>
+        </header>
+
+        <div class="resultados-container">
+            <h2>
+                <% if (tipoVista === 'inicial') { %>
+                    📊 Resultados Parciales
+                <% } else if (tipoVista === 'final') { %>
+                    🎯 Resultados Consolidados
+                <% } else { %>
+                    📈 Resultados Generales
+                <% } %>
+            </h2>
+            
+            <% if (mensaje) { %>
+                <div class="sin-resultados">
+                    <h3>📊 Resultados en Proceso</h3>
+                    <p><%= mensaje %></p>
+                    <div class="acciones-resultados">
+                        <a href="/evaluacion/funcionarios" class="btn-primary">Ser el primero en participar</a>
+                        <a href="/" class="btn-secondary">Volver al inicio</a>
+                    </div>
+                </div>
+            <% } else { %>
+            
+            <!-- SECCIÓN DE FUNCIONARIOS (SIEMPRE VISIBLE) -->
+            <section class="resultados-funcionarios">
+                <h3>Calificación de Funcionarios</h3>
+                
+                <% if (!resultadosFuncionarios || resultadosFuncionarios.length === 0) { %>
+                    <div class="sin-datos">
+                        <p>📝 Aún no hay calificaciones para funcionarios.</p>
+                    </div>
+                <% } else { %>
+                    <!-- Mismo código de funcionarios para todos los tipos -->
+                    <% let funcionarioActual = null; %>
+                    <% let preguntaActual = null; %>
+                    
+                    <% resultadosFuncionarios.forEach(resultado => { %>
+                        <% if (funcionarioActual !== resultado.funcionario_id) { %>
+                            <% if (funcionarioActual !== null) { %>
+                                    </div>
+                                </div>
+                            <% } %>
+                            <div class="funcionario-resultados">
+                                <h4><%= resultado.funcionario_nombre %> - <%= resultado.cargo %></h4>
+                            <% funcionarioActual = resultado.funcionario_id; %>
+                        <% } %>
+                        
+                        <% if (preguntaActual !== resultado.pregunta_id) { %>
+                            <% if (preguntaActual !== null) { %>
+                                    </div>
+                                </div>
+                            <% } %>
+                            <div class="pregunta-resultados">
+                                <h5><%= resultado.pregunta_texto %></h5>
+                                <div class="resultados-grafica">
+                            <% preguntaActual = resultado.pregunta_id; %>
+                        <% } %>
+                        
+                        <div class="resultado-item">
+                            <span class="respuesta-label"><%= resultado.respuesta %>:</span>
+                            <div class="barra-container">
+                                <div class="barra" style="width: 0%;" data-cantidad="<%= resultado.cantidad %>"></div>
+                            </div>
+                            <span class="cantidad"><%= resultado.cantidad %></span>
+                        </div>
+                    <% }); %>
+                    
                     <% if (funcionarioActual !== null) { %>
                             </div>
                         </div>
+                    </div>
                     <% } %>
-                    <div class="funcionario-resultados">
-                        <h4><%= resultado.funcionario_nombre %> - <%= resultado.cargo %></h4>
-                    <% funcionarioActual = resultado.funcionario_id; %>
-                    <% funcionarioCount++; %>
                 <% } %>
+            </section>
+            
+            <!-- SECCIÓN ADMINISTRATIVA (SIEMPRE VISIBLE) -->
+            <section class="resultados-administrativos">
+                <h3>Calificación Administrativa</h3>
                 
-                <% if (preguntaActual !== resultado.pregunta_id) { %>
-                    <% if (preguntaActual !== null) { %>
+                <% if (!resultadosAdministrativos || resultadosAdministrativos.length === 0) { %>
+                    <div class="sin-datos">
+                        <p>📋 Aún no hay calificaciones para la gestión administrativa.</p>
+                    </div>
+                <% } else { %>
+                    <!-- Mismo código administrativo para todos los tipos -->
+                    <% let seccionActual = null; %>
+                    <% let preguntaActual = null; %>
+                    
+                    <% resultadosAdministrativos.forEach(resultado => { %>
+                        <% if (seccionActual !== resultado.seccion_id) { %>
+                            <% if (seccionActual !== null) { %>
+                                    </div>
+                                </div>
+                            <% } %>
+                            <div class="seccion-resultados">
+                                <h4><%= resultado.seccion_nombre %></h4>
+                            <% seccionActual = resultado.seccion_id; %>
+                        <% } %>
+                        
+                        <% if (preguntaActual !== resultado.pregunta_id) { %>
+                            <% if (preguntaActual !== null) { %>
+                                    </div>
+                                </div>
+                            <% } %>
+                            <div class="pregunta-resultados">
+                                <h5><%= resultado.pregunta_texto %></h5>
+                                <div class="resultados-grafica">
+                            <% preguntaActual = resultado.pregunta_id; %>
+                        <% } %>
+                        
+                        <div class="resultado-item">
+                            <span class="respuesta-label"><%= resultado.respuesta %>:</span>
+                            <div class="barra-container">
+                                <div class="barra" style="width: 0%;" data-cantidad="<%= resultado.cantidad %>"></div>
                             </div>
+                            <span class="cantidad"><%= resultado.cantidad %></span>
                         </div>
-                    <% } %>
-                    <div class="pregunta-resultados">
-                        <h5><%= resultado.pregunta_texto %></h5>
-                        <div class="resultados-grafica">
-                    <% preguntaActual = resultado.pregunta_id; %>
-                <% } %>
-                
-                <div class="resultado-item">
-                    <span class="respuesta-label"><%= resultado.respuesta %>:</span>
-                    <div class="barra-container">
-                        <div class="barra" style="width: 0%;" data-cantidad="<%= resultado.cantidad %>"></div>
-                    </div>
-                    <span class="cantidad"><%= resultado.cantidad %></span>
-                </div>
-            <% }); %>
-            
-            <% if (funcionarioCount > 0) { %>
-                    </div>
-                </div>
-            </div>
-            <% } %>
-        <% } %>
-    </section>
-    
-    <section class="resultados-administrativos">
-        <h3>Calificación Administrativa</h3>
-        
-        <% if (!resultadosAdministrativos || resultadosAdministrativos.length === 0) { %>
-            <div class="sin-datos">
-                <p>📋 Aún no hay calificaciones para la gestión administrativa.</p>
-                <p>Participa en la evaluación de los servicios municipales.</p>
-            </div>
-        <% } else { %>
-            <% let seccionActual = null; %>
-            <% let preguntaActual = null; %>
-            <% let seccionCount = 0; %>
-            
-            <% resultadosAdministrativos.forEach(resultado => { %>
-                <% if (seccionActual !== resultado.seccion_id) { %>
+                    <% }); %>
+                    
                     <% if (seccionActual !== null) { %>
                             </div>
                         </div>
-                    <% } %>
-                    <div class="seccion-resultados">
-                        <h4><%= resultado.seccion_nombre %></h4>
-                    <% seccionActual = resultado.seccion_id; %>
-                    <% seccionCount++; %>
-                <% } %>
-                
-                <% if (preguntaActual !== resultado.pregunta_id) { %>
-                    <% if (preguntaActual !== null) { %>
-                            </div>
-                        </div>
-                    <% } %>
-                    <div class="pregunta-resultados">
-                        <h5><%= resultado.pregunta_texto %></h5>
-                        <div class="resultados-grafica">
-                    <% preguntaActual = resultado.pregunta_id; %>
-                <% } %>
-                
-                <div class="resultado-item">
-                    <span class="respuesta-label"><%= resultado.respuesta %>:</span>
-                    <div class="barra-container">
-                        <div class="barra" style="width: 0%;" data-cantidad="<%= resultado.cantidad %>"></div>
                     </div>
-                    <span class="cantidad"><%= resultado.cantidad %></span>
+                    <% } %>
+                <% } %>
+            </section>
+
+            <!-- BOTONES DINÁMICOS SEGÚN EL TIPO DE VISTA -->
+            <div class="navegacion-resultados">
+                <div class="acciones-navegacion">
+                    <% if (tipoVista === 'inicial') { %>
+                        <!-- VISTA INICIAL: Después de funcionarios -->
+                        <a href="/evaluacion/administrativo" class="btn-continuar">
+                            <span class="icono">➡️</span>
+                            Continuar con Evaluación Administrativa
+                        </a>
+                        <a href="/" class="btn-inicio">
+                            <span class="icono">🏠</span>
+                            Volver al Inicio
+                        </a>
+                        
+                    <% } else if (tipoVista === 'final') { %>
+                        <!-- VISTA FINAL: Después de completar todo -->
+                        <a href="/" class="btn-inicio">
+                            <span class="icono">🏠</span>
+                            Volver al Inicio
+                        </a>
+                        <a href="/resultados/inicial" class="btn-comparar">
+                            <span class="icono">📊</span>
+                            Ver Resultados Parciales
+                        </a>
+                        
+                    <% } else { %>
+                        <!-- VISTA GENERAL: Página principal de resultados -->
+                        <a href="/evaluacion/funcionarios" class="btn-participar">
+                            <span class="icono">📝</span>
+                            Participar en la Evaluación
+                        </a>
+                        <a href="/" class="btn-inicio">
+                            <span class="icono">🏠</span>
+                            Volver al Inicio
+                        </a>
+                    <% } %>
                 </div>
-            <% }); %>
-            
-            <% if (seccionCount > 0) { %>
-                    </div>
+                
+                <div class="info-navegacion">
+                    <% if (tipoVista === 'inicial') { %>
+                        <p>💡 <strong>¿Ya terminaste con los funcionarios?</strong> Continúa con la evaluación administrativa para completar tu participación.</p>
+                    <% } else if (tipoVista === 'final') { %>
+                        <p>🎉 <strong>¡Evaluación completada!</strong> Gracias por tu participación en ambas evaluaciones.</p>
+                    <% } else { %>
+                        <p>👀 <strong>Resultados consolidados</strong> de todas las evaluaciones realizadas por la comunidad.</p>
+                    <% } %>
                 </div>
             </div>
+            
             <% } %>
-        <% } %>
-    </section>
+        </div>
 
-    <!-- BOTONES DE NAVEGACIÓN MEJORADOS -->
-    <div class="navegacion-resultados">
-        <div class="acciones-navegacion">
-            <a href="/evaluacion/administrativo" class="btn-continuar">
-                <span class="icono">➡️</span>
-                Continuar con Evaluación Administrativa
-            </a>
-            <a href="/evaluacion/confirmacion" class="btn-inicio">
-                <span class="icono">🏠</span>
-                Volver Atras
-            </a>
-        </div>
-        <div class="info-navegacion">
-            <p>💡 <strong>Falta poco para terminar</strong> Completa la evaluación administrativa para tener una visión completa.</p>
-        </div>
+        <footer>
+            <p>&copy; <%= new Date().getFullYear() %> - Aipe Somos Todos -. Todos los derechos reservados.</p>
+        </footer>
     </div>
-    
-    <% } %>
-</div>
 
-<style>
-.resultados-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.sin-resultados {
-    text-align: center;
-    padding: 60px 40px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 15px;
-    margin: 30px 0;
-}
-
-.sin-resultados h3 {
-    font-size: 2rem;
-    margin-bottom: 20px;
-}
-
-.sin-resultados p {
-    font-size: 1.2rem;
-    margin-bottom: 30px;
-    opacity: 0.9;
-}
-
-.acciones-resultados {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.sin-datos {
-    text-align: center;
-    padding: 40px 20px;
-    background: #f8f9fa;
-    border-radius: 10px;
-    margin: 20px 0;
-    color: #6c757d;
-}
-
-.sin-datos p {
-    margin: 10px 0;
-    font-size: 1.1rem;
-}
-
-.funcionario-resultados,
-.seccion-resultados {
-    background: white;
-    border-radius: 10px;
-    padding: 25px;
-    margin: 25px 0;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    border-left: 5px solid #2c5aa0;
-}
-
-.funcionario-resultados h4,
-.seccion-resultados h4 {
-    color: #2c5aa0;
-    margin-bottom: 20px;
-    font-size: 1.4rem;
-    border-bottom: 2px solid #e9ecef;
-    padding-bottom: 10px;
-}
-
-.pregunta-resultados {
-    margin: 20px 0;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 8px;
-}
-
-.pregunta-resultados h5 {
-    color: #495057;
-    margin-bottom: 15px;
-    font-size: 1.1rem;
-}
-
-.resultados-grafica {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.resultado-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 8px 0;
-}
-
-.respuesta-label {
-    min-width: 120px;
-    font-weight: bold;
-    color: #495057;
-    text-transform: capitalize;
-}
-
-.barra-container {
-    flex: 1;
-    background: #e9ecef;
-    border-radius: 20px;
-    height: 25px;
-    overflow: hidden;
-    position: relative;
-}
-
-.barra {
-    height: 100%;
-    border-radius: 20px;
-    transition: width 1s ease-in-out;
-    min-width: 3%;
-}
-
-.cantidad {
-    min-width: 40px;
-    text-align: right;
-    font-weight: bold;
-    color: #2c5aa0;
-}
-
-/* BOTONES DE NAVEGACIÓN MEJORADOS */
-.navegacion-resultados {
-    margin-top: 50px;
-    padding: 30px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 15px;
-    border: 2px solid #2c5aa0;
-}
-
-.acciones-navegacion {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-}
-
-.btn-continuar {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 15px 30px;
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: white;
-    text-decoration: none;
-    border-radius: 50px;
-    font-weight: bold;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
-}
-
-.btn-continuar:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
-    background: linear-gradient(135deg, #218838, #1e9c7a);
-}
-
-.btn-inicio {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 15px 30px;
-    background: #6c757d;
-    color: white;
-    text-decoration: none;
-    border-radius: 50px;
-    font-weight: bold;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
-}
-
-.btn-inicio:hover {
-    background: #5a6268;
-    transform: translateY(-2px);
-}
-
-.info-navegacion {
-    text-align: center;
-    padding: 15px;
-    background: white;
-    border-radius: 10px;
-    border-left: 4px solid #ffc107;
-}
-
-.info-navegacion p {
-    margin: 0;
-    color: #856404;
-    font-size: 1rem;
-}
-
-.icono {
-    font-size: 1.2rem;
-}
-
-/* Botones generales */
-.btn-primary {
-    display: inline-block;
-    padding: 12px 30px;
-    background: #2c5aa0;
-    color: white;
-    text-decoration: none;
-    border-radius: 25px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-    background: #1a3a6e;
-    transform: translateY(-2px);
-}
-
-.btn-secondary {
-    display: inline-block;
-    padding: 12px 30px;
-    background: #6c757d;
-    color: white;
-    text-decoration: none;
-    border-radius: 25px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.btn-secondary:hover {
-    background: #5a6268;
-    transform: translateY(-2px);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .resultado-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    
-    .respuesta-label {
-        min-width: auto;
-    }
-    
-    .barra-container {
-        width: 100%;
-    }
-    
-    .funcionario-resultados,
-    .seccion-resultados {
-        padding: 15px;
-        margin: 15px 0;
-    }
-    
-    .acciones-navegacion {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .btn-continuar,
-    .btn-inicio {
-        width: 100%;
-        max-width: 300px;
-        justify-content: center;
-    }
-    
-    .navegacion-resultados {
-        padding: 20px;
-        margin-top: 30px;
-    }
-}
-</style>
-
-<script>
+    <!-- MISMO SCRIPT PARA TODOS -->
+    <script>
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('Inicializando gráficas de resultados...');
+        console.log('Inicializando gráficas para vista: <%= tipoVista %>');
         
         const barras = document.querySelectorAll('.barra');
-        
-        if (barras.length === 0) {
-            console.log('No hay barras para inicializar');
-            return;
-        }
-        
-        console.log(`Inicializando ${barras.length} barras...`);
         
         barras.forEach(barra => {
             try {
                 const cantidad = parseInt(barra.getAttribute('data-cantidad'));
                 const preguntaDiv = barra.closest('.pregunta-resultados');
                 
-                if (!preguntaDiv) {
-                    console.warn('No se encontró el contenedor de pregunta para la barra');
-                    return;
-                }
+                if (!preguntaDiv) return;
                 
                 const cantidades = preguntaDiv.querySelectorAll('.cantidad');
-                
                 let total = 0;
                 cantidades.forEach(c => {
                     total += parseInt(c.textContent) || 0;
@@ -444,38 +240,31 @@
                 
                 const porcentaje = total > 0 ? (cantidad / total) * 100 : 0;
                 
-                // Animar la barra después de un pequeño delay
                 setTimeout(() => {
                     barra.style.width = porcentaje + '%';
                 }, 100);
                 
-                // Asignar color según la respuesta
+                // Colores según respuesta
                 const resultadoItem = barra.closest('.resultado-item');
                 if (resultadoItem) {
                     const respuestaLabel = resultadoItem.querySelector('.respuesta-label');
                     if (respuestaLabel) {
                         const respuesta = respuestaLabel.textContent.toLowerCase();
-                        if (respuesta.includes('excelente')) {
-                            barra.style.backgroundColor = '#27ae60';
-                        } else if (respuesta.includes('bueno')) {
-                            barra.style.backgroundColor = '#2ecc71';
-                        } else if (respuesta.includes('regular')) {
-                            barra.style.backgroundColor = '#f39c12';
-                        } else if (respuesta.includes('deficiente')) {
-                            barra.style.backgroundColor = '#e67e22';
-                        } else if (respuesta.includes('malo')) {
-                            barra.style.backgroundColor = '#e74c3c';
-                        }
+                        const colores = {
+                            'excelente': '#27ae60',
+                            'bueno': '#2ecc71',
+                            'regular': '#f39c12',
+                            'deficiente': '#e67e22',
+                            'malo': '#e74c3c'
+                        };
+                        barra.style.backgroundColor = colores[respuesta] || '#2c5aa0';
                     }
                 }
-                
             } catch (error) {
                 console.error('Error inicializando barra:', error);
             }
         });
-        
-        console.log('Gráficas de resultados inicializadas correctamente');
     });
-</script>
-
-<%- include('partials/footer') %>
+    </script>
+</body>
+</html>

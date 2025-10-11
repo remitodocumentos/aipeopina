@@ -3,26 +3,6 @@
 <div class="evaluacion-container">
     <h2>Percepción de la Gestión Administrativa</h2>
     
-    <!-- Sección de información del participante -->
-    <!--<div class="participacion-info">
-        <h3>Información del Participante</h3>
-        <div class="opciones-participacion">
-            <div class="opcion-participacion">
-                <input type="radio" id="anonimo" name="tipo_participacion" value="anonimo" checked>
-                <label for="anonimo">Participar de forma anónima</label>
-            </div>
-            <div class="opcion-participacion">
-                <input type="radio" id="con_nombre" name="tipo_participacion" value="con_nombre">
-                <label for="con_nombre">Participar con mi nombre</label>
-            </div>
-        </div>
-        
-        <div id="campo_nombre" class="campo-nombre" style="display: none;">
-            <label for="nombre">Tu nombre:</label>
-            <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nombre completo">
-        </div>
-    </div>-->
-    
     <form action="/evaluacion/administrativo" method="POST" id="administrativo-form">
         <!-- 👇 MOVER el dispositivo_id DENTRO del formulario -->
         <input type="hidden" id="dispositivo_id" name="dispositivo_id" value="<%= dispositivoId %>">

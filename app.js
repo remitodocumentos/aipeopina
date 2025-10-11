@@ -1,5 +1,4 @@
 //app.js
-// app.js - VERSION CORREGIDA SIN VISTAS ERROR
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
@@ -64,9 +63,20 @@ app.use((req, res, next) => {
 app.use('/', require('./routes/index'));
 app.use('/evaluacion', require('./routes/evaluacion'));
 app.use('/resultados', require('./routes/resultados'));
-app.use('/resultados-final', require('./routes/resultados-final'));
-app.use('/resultados-inicial', require('./routes/resultados-inicial'));
 app.use('/admin', require('./routes/admin'));
+app.use('/export', require('./routes/export')); // Exportación con auth
+app.use('/descargar', require('./routes/export-public')); // 👈 Exportación PÚBLICA
+
+// Redirecciones para compatibilidad
+app.get('/resultados-inicial', (req, res) => res.redirect('/resultados/inicial'));
+app.get('/resultados-final', (req, res) => res.redirect('/resultados/final'));
+
+// ✅ NUEVA RUTA PARA PÁGINA "YA PARTICIPÓ"
+app.get('/ya-participo', (req, res) => {
+    res.render('ya-participo', { 
+        tipo: req.query.tipo 
+    });
+});
 
 // Manejo de errores 404 - SIMPLIFICADO
 app.use((req, res) => {
