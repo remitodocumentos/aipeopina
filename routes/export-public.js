@@ -1,63 +1,126 @@
-//routes/export-public.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');
 
-// Exportar respuestas de funcionarios - PÚBLICO
+// Función auxiliar para obtener respuestas de funcionarios AGRUPADAS POR PARTICIPANTE
+const getRespuestasFuncionariosAgrupadas = async () => {
+    const result = await db.query(`
+        SELECT 
+            p.id AS participante_id,
+            p.nombre AS participante_nombre,
+            p.dispositivo_id,
+            CASE 
+                WHEN p.nombre IS NULL OR p.nombre = '' THEN 'Anónimo'
+                ELSE 'Con nombre' 
+            END AS tipo_participacion,
+            f.nombre AS funcionario_nombre,
+            f.cargo,
+            f.seccion,
+            pf.texto AS pregunta_texto,
+            pf.categoria,
+            rf.respuesta,
+            TO_CHAR(rf.fecha, 'DD/MM/YYYY HH24:MI:SS') AS fecha_respuesta
+        FROM respuestas_funcionarios rf
+        JOIN participantes p ON rf.participante_id = p.id
+        JOIN funcionarios f ON rf.funcionario_id = f.id
+        JOIN preguntas_funcionarios pf ON rf.pregunta_id = pf.id
+        ORDER BY 
+            p.id ASC,
+            f.nombre ASC,
+            pf.categoria ASC
+    `);
+    return result.rows;
+};
+
+// Función auxiliar para obtener respuestas administrativas AGRUPADAS POR PARTICIPANTE
+const getRespuestasAdministrativasAgrupadas = async () => {
+    const result = await db.query(`
+        SELECT 
+            p.id AS participante_id,
+            p.nombre AS participante_nombre,
+            p.dispositivo_id,
+            CASE 
+                WHEN p.nombre IS NULL OR p.nombre = '' THEN 'Anónimo'
+                ELSE 'Con nombre' 
+            END AS tipo_participacion,
+            sa.nombre AS seccion_nombre,
+            pa.texto AS pregunta_texto,
+            ra.respuesta,
+            TO_CHAR(ra.fecha, 'DD/MM/YYYY HH24:MI:SS') AS fecha_respuesta
+        FROM respuestas_administrativas ra
+        JOIN participantes p ON ra.participante_id = p.id
+        JOIN secciones_administrativas sa ON ra.seccion_id = sa.id
+        JOIN preguntas_administrativas pa ON ra.pregunta_id = pa.id
+        ORDER BY 
+            p.id ASC,
+            sa.nombre ASC,
+            pa.texto ASC
+    `);
+    return result.rows;
+};
+
+// Exportar respuestas de funcionarios - AGRUPADO POR PARTICIPANTE
 router.get('/respuestas-funcionarios', async (req, res) => {
     try {
-        console.log('=== EXPORT PÚBLICO - RESPUESTAS FUNCIONARIOS ===');
+        console.log('=== EXPORT PÚBLICO - RESPUESTAS FUNCIONARIOS AGRUPADAS ===');
         
-        const respuestas = await db.query(`
-            SELECT 
-                p.nombre AS "Nombre Participante",
-                CASE 
-                    WHEN p.nombre IS NULL OR p.nombre = '' THEN 'Anónimo'
-                    ELSE 'Con nombre' 
-                END AS "Tipo Participación",
-                f.nombre AS "Nombre Funcionario",
-                f.cargo AS "Cargo",
-                f.seccion AS "Sección",
-                pf.texto AS "Pregunta",
-                pf.categoria AS "Categoría",
-                rf.respuesta AS "Calificación",
-                TO_CHAR(rf.fecha, 'DD/MM/YYYY HH24:MI:SS') AS "Fecha Respuesta"
-            FROM respuestas_funcionarios rf
-            LEFT JOIN participantes p ON rf.participante_id = p.id
-            JOIN funcionarios f ON rf.funcionario_id = f.id
-            JOIN preguntas_funcionarios pf ON rf.pregunta_id = pf.id
-            ORDER BY f.nombre ASC, pf.categoria ASC
-        `);
+        const respuestas = await getRespuestasFuncionariosAgrupadas();
 
-        if (respuestas.rows.length === 0) {
+        if (respuestas.length === 0) {
             return res.status(404).send('No hay respuestas de funcionarios para exportar');
         }
 
-        // Crear contenido de texto
-        let contenido = 'RESPUESTAS DE EVALUACIÓN DE FUNCIONARIOS - AIPE OPINA\n';
-        contenido += '==========================================================\n\n';
+        // Agrupar por participante
+        const respuestasPorParticipante = {};
+        respuestas.forEach(row => {
+            const participanteId = row.participante_id;
+            if (!respuestasPorParticipante[participanteId]) {
+                respuestasPorParticipante[participanteId] = {
+                    nombre: row.participante_nombre || 'Anónimo',
+                    tipo: row.tipo_participacion,
+                    dispositivo_id: row.dispositivo_id,
+                    respuestas: []
+                };
+            }
+            respuestasPorParticipante[participanteId].respuestas.push(row);
+        });
+
+        // Crear contenido de texto AGRUPADO POR PARTICIPANTE
+        let contenido = 'RESPUESTAS DE EVALUACIÓN DE FUNCIONARIOS - AGRUPADO POR PARTICIPANTE\n';
+        contenido += '===================================================================\n\n';
         contenido += `Fecha de exportación: ${new Date().toLocaleDateString('es-ES')}\n`;
-        contenido += `Total de respuestas: ${respuestas.rows.length}\n\n`;
+        contenido += `Total de participantes: ${Object.keys(respuestasPorParticipante).length}\n`;
+        contenido += `Total de respuestas: ${respuestas.length}\n\n`;
         
-        const headers = ['Nombre Participante', 'Tipo Participación', 'Nombre Funcionario', 'Cargo', 'Pregunta', 'Calificación', 'Fecha'];
-        contenido += headers.join(' | ') + '\n';
-        contenido += headers.map(h => '-'.repeat(h.length)).join('-+-') + '\n';
-        
-        respuestas.rows.forEach(row => {
-            const fila = [
-                row['Nombre Participante'] || 'Anónimo',
-                row['Tipo Participación'],
-                row['Nombre Funcionario'],
-                row['Cargo'],
-                row['Pregunta'],
-                row['Calificación'],
-                row['Fecha Respuesta']
-            ];
-            contenido += fila.join(' | ') + '\n';
+        // Para cada participante
+        Object.values(respuestasPorParticipante).forEach((participante, index) => {
+            contenido += `\n${'='.repeat(80)}\n`;
+            contenido += `PARTICIPANTE ${index + 1}: ${participante.nombre} (${participante.tipo})\n`;
+            contenido += `ID Dispositivo: ${participante.dispositivo_id}\n`;
+            contenido += `${'='.repeat(80)}\n\n`;
+            
+            // Encabezados para este participante
+            const headers = ['Funcionario', 'Cargo', 'Sección', 'Pregunta', 'Categoría', 'Calificación', 'Fecha'];
+            contenido += headers.join(' | ') + '\n';
+            contenido += headers.map(h => '-'.repeat(h.length)).join('-+-') + '\n';
+            
+            // Respuestas de este participante
+            participante.respuestas.forEach(row => {
+                const fila = [
+                    row.funcionario_nombre,
+                    row.cargo,
+                    row.seccion,
+                    row.pregunta_texto,
+                    row.categoria,
+                    row.respuesta,
+                    row.fecha_respuesta
+                ];
+                contenido += fila.join(' | ') + '\n';
+            });
         });
 
         res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.setHeader('Content-Disposition', 'attachment; filename="resultados_funcionarios_aipe.txt"');
+        res.setHeader('Content-Disposition', 'attachment; filename="resultados_funcionarios_por_participante.txt"');
         res.send(contenido);
 
     } catch (error) {
@@ -66,57 +129,65 @@ router.get('/respuestas-funcionarios', async (req, res) => {
     }
 });
 
-// Exportar respuestas administrativas - PÚBLICO
+// Exportar respuestas administrativas - AGRUPADO POR PARTICIPANTE
 router.get('/respuestas-administrativas', async (req, res) => {
     try {
-        console.log('=== EXPORT PÚBLICO - RESPUESTAS ADMINISTRATIVAS ===');
+        console.log('=== EXPORT PÚBLICO - RESPUESTAS ADMINISTRATIVAS AGRUPADAS ===');
         
-        const respuestas = await db.query(`
-            SELECT 
-                p.nombre AS "Nombre Participante",
-                CASE 
-                    WHEN p.nombre IS NULL OR p.nombre = '' THEN 'Anónimo'
-                    ELSE 'Con nombre' 
-                END AS "Tipo Participación",
-                sa.nombre AS "Sección Administrativa",
-                pa.texto AS "Pregunta",
-                ra.respuesta AS "Calificación",
-                TO_CHAR(ra.fecha, 'DD/MM/YYYY HH24:MI:SS') AS "Fecha Respuesta"
-            FROM respuestas_administrativas ra
-            LEFT JOIN participantes p ON ra.participante_id = p.id
-            JOIN secciones_administrativas sa ON ra.seccion_id = sa.id
-            JOIN preguntas_administrativas pa ON ra.pregunta_id = pa.id
-            ORDER BY sa.nombre ASC, pa.texto ASC
-        `);
+        const respuestas = await getRespuestasAdministrativasAgrupadas();
 
-        if (respuestas.rows.length === 0) {
+        if (respuestas.length === 0) {
             return res.status(404).send('No hay respuestas administrativas para exportar');
         }
 
-        // Crear contenido de texto
-        let contenido = 'RESPUESTAS DE EVALUACIÓN ADMINISTRATIVA - AIPE OPINA\n';
-        contenido += '=========================================================\n\n';
+        // Agrupar por participante
+        const respuestasPorParticipante = {};
+        respuestas.forEach(row => {
+            const participanteId = row.participante_id;
+            if (!respuestasPorParticipante[participanteId]) {
+                respuestasPorParticipante[participanteId] = {
+                    nombre: row.participante_nombre || 'Anónimo',
+                    tipo: row.tipo_participacion,
+                    dispositivo_id: row.dispositivo_id,
+                    respuestas: []
+                };
+            }
+            respuestasPorParticipante[participanteId].respuestas.push(row);
+        });
+
+        // Crear contenido de texto AGRUPADO POR PARTICIPANTE
+        let contenido = 'RESPUESTAS DE EVALUACIÓN ADMINISTRATIVA - AGRUPADO POR PARTICIPANTE\n';
+        contenido += '====================================================================\n\n';
         contenido += `Fecha de exportación: ${new Date().toLocaleDateString('es-ES')}\n`;
-        contenido += `Total de respuestas: ${respuestas.rows.length}\n\n`;
+        contenido += `Total de participantes: ${Object.keys(respuestasPorParticipante).length}\n`;
+        contenido += `Total de respuestas: ${respuestas.length}\n\n`;
         
-        const headers = ['Nombre Participante', 'Tipo Participación', 'Sección', 'Pregunta', 'Calificación', 'Fecha'];
-        contenido += headers.join(' | ') + '\n';
-        contenido += headers.map(h => '-'.repeat(h.length)).join('-+-') + '\n';
-        
-        respuestas.rows.forEach(row => {
-            const fila = [
-                row['Nombre Participante'] || 'Anónimo',
-                row['Tipo Participación'],
-                row['Sección Administrativa'],
-                row['Pregunta'],
-                row['Calificación'],
-                row['Fecha Respuesta']
-            ];
-            contenido += fila.join(' | ') + '\n';
+        // Para cada participante
+        Object.values(respuestasPorParticipante).forEach((participante, index) => {
+            contenido += `\n${'='.repeat(80)}\n`;
+            contenido += `PARTICIPANTE ${index + 1}: ${participante.nombre} (${participante.tipo})\n`;
+            contenido += `ID Dispositivo: ${participante.dispositivo_id}\n`;
+            contenido += `${'='.repeat(80)}\n\n`;
+            
+            // Encabezados para este participante
+            const headers = ['Sección', 'Pregunta', 'Calificación', 'Fecha'];
+            contenido += headers.join(' | ') + '\n';
+            contenido += headers.map(h => '-'.repeat(h.length)).join('-+-') + '\n';
+            
+            // Respuestas de este participante
+            participante.respuestas.forEach(row => {
+                const fila = [
+                    row.seccion_nombre,
+                    row.pregunta_texto,
+                    row.respuesta,
+                    row.fecha_respuesta
+                ];
+                contenido += fila.join(' | ') + '\n';
+            });
         });
 
         res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.setHeader('Content-Disposition', 'attachment; filename="resultados_administrativos_aipe.txt"');
+        res.setHeader('Content-Disposition', 'attachment; filename="resultados_administrativos_por_participante.txt"');
         res.send(contenido);
 
     } catch (error) {

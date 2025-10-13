@@ -3,69 +3,49 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');
 
-// Ruta única para TODOS los resultados
+// Ruta única para TODOS los resultados (CONSOLIDADO)
 router.get('/:tipo?', async (req, res) => {
     try {
         const tipo = req.params.tipo || 'general';
         
-        console.log(`=== CARGANDO RESULTADOS TIPO: ${tipo} ===`);
+        console.log(`=== CARGANDO RESULTADOS CONSOLIDADOS: ${tipo} ===`);
         
-        // Obtener datos AGRUPADOS POR PARTICIPANTE
-        let participantes = [];
-        let resultadosPorParticipante = {
-            funcionarios: {},
-            administrativas: {}
-        };
+        let resultadosFuncionarios = [];
+        let resultadosAdministrativos = [];
         
         try {
-            // Obtener lista de participantes únicos
-            participantes = await db.getParticipantesUnicos();
-            console.log(`✅ Participantes únicos: ${participantes.length}`);
-            
-            // Obtener resultados de funcionarios agrupados
-            const resultadosFunc = await db.getResultadosFuncionariosPorParticipante();
-            console.log(`✅ Respuestas funcionarios: ${resultadosFunc.length}`);
-            
-            // Obtener resultados administrativos agrupados
-            const resultadosAdmin = await db.getResultadosAdministrativosPorParticipante();
-            console.log(`✅ Respuestas administrativas: ${resultadosAdmin.length}`);
-            
-            // Organizar resultados por participante
-            resultadosFunc.forEach(resultado => {
-                const participanteId = resultado.participante_id;
-                if (!resultadosPorParticipante.funcionarios[participanteId]) {
-                    resultadosPorParticipante.funcionarios[participanteId] = [];
-                }
-                resultadosPorParticipante.funcionarios[participanteId].push(resultado);
-            });
-            
-            resultadosAdmin.forEach(resultado => {
-                const participanteId = resultado.participante_id;
-                if (!resultadosPorParticipante.administrativas[participanteId]) {
-                    resultadosPorParticipante.administrativas[participanteId] = [];
-                }
-                resultadosPorParticipante.administrativas[participanteId].push(resultado);
-            });
-            
+            resultadosFuncionarios = await db.getResultadosFuncionarios();
+            console.log(`✅ Resultados funcionarios: ${resultadosFuncionarios.length} registros`);
         } catch (error) {
-            console.error('Error cargando resultados:', error);
+            console.error('❌ Error cargando resultados de funcionarios:', error.message);
         }
         
-        // Determinar si mostrar mensaje de "sin datos"
-        const mensaje = participantes.length === 0 
-            ? 'Aún no hay resultados disponibles. Sé el primero en participar.'
-            : null;
+        try {
+            resultadosAdministrativos = await db.getResultadosAdministrativos();
+            console.log(`✅ Resultados administrativos: ${resultadosAdministrativos.length} registros`);
+        } catch (error) {
+            console.error('❌ Error cargando resultados administrativos:', error.message);
+        }
         
-        // Renderizar plantilla
-        res.render('resultados', {
-            tipoVista: tipo,
-            participantes,
-            resultadosPorParticipante,
-            mensaje
+        // Si no hay datos de ningún tipo, mostrar mensaje amigable
+        if (resultadosFuncionarios.length === 0 && resultadosAdministrativos.length === 0) {
+            console.log('ℹ️ No hay datos de resultados disponibles aún');
+            return res.render('resultados', {
+                resultadosFuncionarios: [],
+                resultadosAdministrativos: [],
+                mensaje: 'Aún no hay resultados disponibles. Sé el primero en participar.'
+            });
+        }
+        
+        res.render('resultados', { 
+            resultadosFuncionarios, 
+            resultadosAdministrativos,
+            mensaje: null,
+            tipoVista: tipo
         });
         
     } catch (error) {
-        console.error('❌ ERROR al cargar resultados:', error);
+        console.error('❌ ERROR CRÍTICO AL CARGAR RESULTADOS:', error);
         res.status(500).render('error', {
             message: 'Error al cargar los resultados',
             error: process.env.NODE_ENV === 'production' ? {} : error

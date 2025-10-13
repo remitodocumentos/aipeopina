@@ -63,6 +63,7 @@ app.use((req, res, next) => {
 app.use('/', require('./routes/index'));
 app.use('/evaluacion', require('./routes/evaluacion'));
 app.use('/resultados', require('./routes/resultados'));
+app.use('/detalle-participante', require('./routes/detalle-participante')); // 👈 NUEVA RUTA
 app.use('/admin', require('./routes/admin'));
 app.use('/export', require('./routes/export')); // Exportación con auth
 app.use('/descargar', require('./routes/export-public')); // 👈 Exportación PÚBLICA
