@@ -2,7 +2,8 @@
 
 // Determinar qué evaluación ya fue completada
 <%
-const tipo = req.query.tipo || 'completa';
+// Usar la variable 'tipo' que se pasa desde el controlador, no 'req.query'
+const tipo = typeof tipo !== 'undefined' ? tipo : 'completa';
 let mensajeTitulo = '';
 let mensajeDetalle = '';
 

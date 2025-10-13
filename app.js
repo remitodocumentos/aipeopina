@@ -73,9 +73,15 @@ app.get('/resultados-inicial', (req, res) => res.redirect('/resultados/inicial')
 app.get('/resultados-final', (req, res) => res.redirect('/resultados/final'));
 
 // ✅ NUEVA RUTA PARA PÁGINA "YA PARTICIPÓ"
-app.get('/ya-participo', (req, res) => {
-    res.render('ya-participo', { 
-        tipo: req.query.tipo 
+router.get('/ya-participo', (req, res) => {
+    const tipo = req.query.tipo || 'completa';
+    
+    // Validar que el tipo sea uno de los permitidos
+    const tiposPermitidos = ['funcionarios', 'administrativas', 'completa'];
+    const tipoFinal = tiposPermitidos.includes(tipo) ? tipo : 'completa';
+    
+    res.render('ya-participo', {
+        tipo: tipoFinal
     });
 });
 
