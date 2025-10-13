@@ -1,20 +1,20 @@
 <%- include('partials/header-two') %>
 
-// Determinar qué evaluación ya fue completada
+// Determinar qué caliicación ya fue completada
 <%
 const tipo = req.query.tipo || 'completa';
 let mensajeTitulo = '';
 let mensajeDetalle = '';
 
 if (tipo === 'funcionarios') {
-    mensajeTitulo = 'Ya completaste la evaluación de funcionarios';
-    mensajeDetalle = 'Has terminado la primera parte de la evaluación. Puedes continuar con la evaluación administrativa.';
+    mensajeTitulo = 'Ya completaste la calificación de funcionarios';
+    mensajeDetalle = 'Has terminado la primera parte de la calificación. Puedes continuar con la clificación administrativa.';
 } else if (tipo === 'administrativas') {
-    mensajeTitulo = 'Ya completaste la evaluación administrativa';
-    mensajeDetalle = '¡Felicidades! Has completado ambas partes de la evaluación.';
+    mensajeTitulo = 'Ya completaste la calificación administrativa';
+    mensajeDetalle = '¡Felicidades! Has completado ambas partes de la clificación.';
 } else {
-    mensajeTitulo = 'Ya has participado en esta evaluación';
-    mensajeDetalle = 'Has completado todas las evaluaciones disponibles.';
+    mensajeTitulo = 'Ya has participado en esta calificación';
+    mensajeDetalle = 'Has completado todas las calificaciones disponibles.';
 }
 %>
 
@@ -44,7 +44,7 @@ if (tipo === 'funcionarios') {
         <div class="acciones">
             <% if (tipo === 'funcionarios') { %>
                 <a href="/evaluacion/administrativo" class="btn-continuar">
-                    ➡️ Continuar con Evaluación Administrativa
+                    ➡️ Continuar con Calificación Administrativa
                 </a>
             <% } %>
             <a href="/resultados" class="btn-primary">📊 Ver Resultados</a>

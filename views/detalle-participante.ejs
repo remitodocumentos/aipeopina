@@ -10,7 +10,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Detalle de Evaluaciones por Participante</h1>
+            <h1>Detalle de Calificaciones por Participante</h1>
             <h2>Resultados agrupados por cada persona que participó</h2>
         </header>
 
@@ -90,7 +90,7 @@
                 <!-- SECCIÓN DE FUNCIONARIOS -->
                 <% if (resultadosPorParticipante.funcionarios[participante.id] && resultadosPorParticipante.funcionarios[participante.id].length > 0) { %>
                 <div class="seccion-participante">
-                    <h4>🏛️ Evaluación de Funcionarios</h4>
+                    <h4>🏛️ Calificación de Funcionarios</h4>
                     
                     <% let funcionarioActual = null; %>
                     <% resultadosPorParticipante.funcionarios[participante.id].forEach(resultado => { %>
@@ -123,7 +123,7 @@
                 <!-- SECCIÓN ADMINISTRATIVA -->
                 <% if (resultadosPorParticipante.administrativas[participante.id] && resultadosPorParticipante.administrativas[participante.id].length > 0) { %>
                 <div class="seccion-participante">
-                    <h4>🏢 Evaluación Administrativa</h4>
+                    <h4>🏢 Calificación Administrativa</h4>
                     
                     <% let seccionActual = null; %>
                     <% resultadosPorParticipante.administrativas[participante.id].forEach(resultado => { %>
