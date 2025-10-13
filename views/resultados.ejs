@@ -27,12 +27,6 @@
                     Resultados de la Evaluación
                 <% } %>
             </h1>
-            
-            <% if (tipoVista === 'inicial') { %>
-                <h2>Evaluación de Funcionarios Completada</h2>
-            <% } else if (tipoVista === 'final') { %>
-                <h2>Evaluación Completa Finalizada</h2>
-            <% } %>
         </header>
 
         <div class="resultados-container">
@@ -46,13 +40,6 @@
                 <% } %>
             </h2>
             
-            <% if (error) { %>
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <%= error %>
-                </div>
-            <% } %>
-            
             <% if (mensaje) { %>
                 <div class="sin-resultados">
                     <h3>📊 Resultados en Proceso</h3>
@@ -62,153 +49,109 @@
                         <a href="/" class="btn-secondary">Volver al Inicio</a>
                     </div>
                 </div>
-            <% } else if ((!resultadosFuncionarios || resultadosFuncionarios.length === 0) && (!resultadosAdministrativos || resultadosAdministrativos.length === 0)) { %>
-                <div class="sin-resultados">
-                    <h3>📊 No hay resultados aún</h3>
-                    <p>Aún no se han registrado evaluaciones. Sé el primero en participar.</p>
-                    <div class="acciones-resultados">
-                        <a href="/evaluacion/funcionarios" class="btn-primary">Comenzar Evaluación</a>
-                        <a href="/" class="btn-secondary">Volver al Inicio</a>
-                    </div>
-                </div>
             <% } else { %>
-            
-            <!-- RESUMEN SIMPLE DE RESULTADOS -->
-            <div class="resumen-resultados">
-                <h3>📊 Resumen de Resultados</h3>
-                <div class="estadisticas-resultados">
-                    <div class="estadistica-item">
-                        <span class="numero">
-                            <% 
-                            let funcionariosUnicos = new Set();
-                            if (resultadosFuncionarios && resultadosFuncionarios.length > 0) {
-                                resultadosFuncionarios.forEach(r => funcionariosUnicos.add(r.funcionario_id));
-                            }
-                            %>
-                            <%= funcionariosUnicos.size %>
-                        </span>
-                        <span class="label">Funcionarios Evaluados</span>
-                    </div>
-                    <div class="estadistica-item">
-                        <span class="numero">
-                            <% 
-                            let seccionesUnicas = new Set();
-                            if (resultadosAdministrativos && resultadosAdministrativos.length > 0) {
-                                resultadosAdministrativos.forEach(r => seccionesUnicas.add(r.seccion_id));
-                            }
-                            %>
-                            <%= seccionesUnicas.size %>
-                        </span>
-                        <span class="label">Secciones Evaluadas</span>
-                    </div>
-                    <div class="estadistica-item">
-                        <span class="numero"><%= resultadosFuncionarios ? resultadosFuncionarios.length : 0 %></span>
-                        <span class="label">Respuestas Funcionarios</span>
-                    </div>
-                    <div class="estadistica-item">
-                        <span class="numero"><%= resultadosAdministrativos ? resultadosAdministrativos.length : 0 %></span>
-                        <span class="label">Respuestas Administrativas</span>
-                    </div>
-                </div>
-            </div>
-
+    
             <!-- SECCIÓN DE FUNCIONARIOS -->
-            <% if (resultadosFuncionarios && resultadosFuncionarios.length > 0) { %>
             <section class="resultados-funcionarios">
                 <h3>Calificación de Funcionarios</h3>
                 
-                <% let funcionarioActual = null; %>
-                <% let preguntaActual = null; %>
-                <% let funcionarioCount = 0; %>
-                
-                <% resultadosFuncionarios.forEach(resultado => { %>
-                    <% if (funcionarioActual !== resultado.funcionario_id) { %>
-                        <% if (funcionarioActual !== null) { %>
-                                </div>
-                            </div>
-                        <% } %>
-                        <div class="funcionario-resultados">
-                            <h4><%= resultado.funcionario_nombre %> - <%= resultado.cargo %></h4>
-                        <% funcionarioActual = resultado.funcionario_id; %>
-                        <% funcionarioCount++; %>
-                    <% } %>
-                    
-                    <% if (preguntaActual !== resultado.pregunta_id) { %>
-                        <% if (preguntaActual !== null) { %>
-                                </div>
-                            </div>
-                        <% } %>
-                        <div class="pregunta-resultados">
-                            <h5><%= resultado.pregunta_texto %></h5>
-                            <div class="resultados-grafica">
-                        <% preguntaActual = resultado.pregunta_id; %>
-                    <% } %>
-                    
-                    <div class="resultado-item">
-                        <span class="respuesta-label"><%= resultado.respuesta %>:</span>
-                        <div class="barra-container">
-                            <div class="barra" style="width: 0%;" data-cantidad="<%= resultado.cantidad %>"></div>
-                        </div>
-                        <span class="cantidad"><%= resultado.cantidad %></span>
+                <% if (!resultadosFuncionarios || resultadosFuncionarios.length === 0) { %>
+                    <div class="sin-datos">
+                        <p>📝 Aún no hay calificaciones para funcionarios.</p>
                     </div>
-                <% }); %>
-                
-                <% if (funcionarioCount > 0) { %>
+                <% } else { %>
+                    <% let funcionarioActual = null; %>
+                    <% let preguntaActual = null; %>
+                    
+                    <% resultadosFuncionarios.forEach(resultado => { %>
+                        <% if (funcionarioActual !== resultado.funcionario_id) { %>
+                            <% if (funcionarioActual !== null) { %>
+                                    </div>
+                                </div>
+                            <% } %>
+                            <div class="funcionario-resultados">
+                                <h4><%= resultado.funcionario_nombre %> - <%= resultado.cargo %></h4>
+                            <% funcionarioActual = resultado.funcionario_id; %>
+                        <% } %>
+                        
+                        <% if (preguntaActual !== resultado.pregunta_id) { %>
+                            <% if (preguntaActual !== null) { %>
+                                    </div>
+                                </div>
+                            <% } %>
+                            <div class="pregunta-resultados">
+                                <h5><%= resultado.pregunta_texto %></h5>
+                                <div class="resultados-grafica">
+                            <% preguntaActual = resultado.pregunta_id; %>
+                        <% } %>
+                        
+                        <div class="resultado-item">
+                            <span class="respuesta-label"><%= resultado.respuesta %>:</span>
+                            <div class="barra-container">
+                                <div class="barra" style="width: 0%;" data-cantidad="<%= resultado.cantidad %>"></div>
+                            </div>
+                            <span class="cantidad"><%= resultado.cantidad %></span>
+                        </div>
+                    <% }); %>
+                    
+                    <% if (funcionarioActual !== null) { %>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    <% } %>
                 <% } %>
             </section>
-            <% } %>
             
             <!-- SECCIÓN ADMINISTRATIVA -->
-            <% if (resultadosAdministrativos && resultadosAdministrativos.length > 0) { %>
             <section class="resultados-administrativos">
                 <h3>Calificación Administrativa</h3>
                 
-                <% let seccionActual = null; %>
-                <% let preguntaActual = null; %>
-                <% let seccionCount = 0; %>
-                
-                <% resultadosAdministrativos.forEach(resultado => { %>
-                    <% if (seccionActual !== resultado.seccion_id) { %>
-                        <% if (seccionActual !== null) { %>
-                                </div>
-                            </div>
-                        <% } %>
-                        <div class="seccion-resultados">
-                            <h4><%= resultado.seccion_nombre %></h4>
-                        <% seccionActual = resultado.seccion_id; %>
-                        <% seccionCount++; %>
-                    <% } %>
-                    
-                    <% if (preguntaActual !== resultado.pregunta_id) { %>
-                        <% if (preguntaActual !== null) { %>
-                                </div>
-                            </div>
-                        <% } %>
-                        <div class="pregunta-resultados">
-                            <h5><%= resultado.pregunta_texto %></h5>
-                            <div class="resultados-grafica">
-                        <% preguntaActual = resultado.pregunta_id; %>
-                    <% } %>
-                    
-                    <div class="resultado-item">
-                        <span class="respuesta-label"><%= resultado.respuesta %>:</span>
-                        <div class="barra-container">
-                            <div class="barra" style="width: 0%;" data-cantidad="<%= resultado.cantidad %>"></div>
-                        </div>
-                        <span class="cantidad"><%= resultado.cantidad %></span>
+                <% if (!resultadosAdministrativos || resultadosAdministrativos.length === 0) { %>
+                    <div class="sin-datos">
+                        <p>📋 Aún no hay calificaciones para la gestión administrativa.</p>
                     </div>
-                <% }); %>
-                
-                <% if (seccionCount > 0) { %>
+                <% } else { %>
+                    <% let seccionActual = null; %>
+                    <% let preguntaActual = null; %>
+                    
+                    <% resultadosAdministrativos.forEach(resultado => { %>
+                        <% if (seccionActual !== resultado.seccion_id) { %>
+                            <% if (seccionActual !== null) { %>
+                                    </div>
+                                </div>
+                            <% } %>
+                            <div class="seccion-resultados">
+                                <h4><%= resultado.seccion_nombre %></h4>
+                            <% seccionActual = resultado.seccion_id; %>
+                        <% } %>
+                        
+                        <% if (preguntaActual !== resultado.pregunta_id) { %>
+                            <% if (preguntaActual !== null) { %>
+                                    </div>
+                                </div>
+                            <% } %>
+                            <div class="pregunta-resultados">
+                                <h5><%= resultado.pregunta_texto %></h5>
+                                <div class="resultados-grafica">
+                            <% preguntaActual = resultado.pregunta_id; %>
+                        <% } %>
+                        
+                        <div class="resultado-item">
+                            <span class="respuesta-label"><%= resultado.respuesta %>:</span>
+                            <div class="barra-container">
+                                <div class="barra" style="width: 0%;" data-cantidad="<%= resultado.cantidad %>"></div>
+                            </div>
+                            <span class="cantidad"><%= resultado.cantidad %></span>
+                        </div>
+                    <% }); %>
+                    
+                    <% if (seccionActual !== null) { %>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    <% } %>
                 <% } %>
             </section>
-            <% } %>
 
             <!-- BOTONES DE NAVEGACIÓN -->
             <div class="navegacion-resultados">
@@ -308,6 +251,7 @@
             background: linear-gradient(135deg, #5a2d91, #c21767);
             box-shadow: 0 5px 15px rgba(111, 66, 193, 0.3);
         }
+           
    
         /* ESTILOS PARA VISTA POR PARTICIPANTE */
         .resumen-participantes {
