@@ -1,3 +1,4 @@
+//routes/export-public.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db/queries');
@@ -10,7 +11,6 @@ router.get('/respuestas-funcionarios', async (req, res) => {
         const respuestas = await db.query(`
             SELECT 
                 p.nombre AS "Nombre Participante",
-                p.dispositivo_id AS "ID Dispositivo",
                 CASE 
                     WHEN p.nombre IS NULL OR p.nombre = '' THEN 'Anónimo'
                     ELSE 'Con nombre' 
