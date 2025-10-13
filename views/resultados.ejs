@@ -60,6 +60,7 @@
             <% } else { %>
             
             <!-- RESUMEN DE PARTICIPANTES -->
+             <!--
             <div class="resumen-participantes">
                 <h3>📈 Resumen General</h3>
                 <div class="estadisticas-participantes">
@@ -81,7 +82,42 @@
                     </div>
                 </div>
             </div>
-
+            -->
+            <!-- RESUMEN SIMPLE DE RESULTADOS -->
+            <div class="resumen-resultados">
+                <h3>📊 Resumen de Resultados</h3>
+                <div class="estadisticas-resultados">
+                    <div class="estadistica-item">
+                        <span class="numero">
+                            <% 
+                            let funcionariosUnicos = new Set();
+                            resultadosFuncionarios.forEach(r => funcionariosUnicos.add(r.funcionario_id));
+                            %>
+                            <%= funcionariosUnicos.size %>
+                        </span>
+                        <span class="label">Funcionarios Evaluados</span>
+                    </div>
+                    <div class="estadistica-item">
+                        <span class="numero">
+                            <% 
+                            let seccionesUnicas = new Set();
+                            resultadosAdministrativos.forEach(r => seccionesUnicas.add(r.seccion_id));
+                            %>
+                            <%= seccionesUnicas.size %>
+                        </span>
+                        <span class="label">Secciones Evaluadas</span>
+                    </div>
+                    <div class="estadistica-item">
+                        <span class="numero"><%= resultadosFuncionarios.length %></span>
+                        <span class="label">Respuestas Funcionarios</span>
+                    </div>
+                    <div class="estadistica-item">
+                        <span class="numero"><%= resultadosAdministrativos.length %></span>
+                        <span class="label">Respuestas Administrativas</span>
+                    </div>
+                </div>
+            </div>
+            
             <!-- LISTA DE PARTICIPANTES -->
             <% participantes.forEach(participante => { %>
             <div class="participante-block" id="participante-<%= participante.id %>">

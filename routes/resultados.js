@@ -15,40 +15,31 @@ router.get('/:tipo?', async (req, res) => {
         let errorCarga = null;
         
         try {
-            // Usar la función original de resultados consolidados
             resultadosFuncionarios = await db.getResultadosFuncionarios();
             console.log(`✅ Resultados funcionarios: ${resultadosFuncionarios ? resultadosFuncionarios.length : 0} registros`);
         } catch (error) {
             console.error('❌ Error cargando resultados de funcionarios:', error.message);
             errorCarga = 'Error al cargar resultados de funcionarios';
-            // Continuar sin resultados de funcionarios
         }
         
         try {
-            // Usar la función original de resultados consolidados
             resultadosAdministrativos = await db.getResultadosAdministrativos();
             console.log(`✅ Resultados administrativos: ${resultadosAdministrativos ? resultadosAdministrativos.length : 0} registros`);
         } catch (error) {
             console.error('❌ Error cargando resultados administrativos:', error.message);
             errorCarga = errorCarga ? errorCarga + ' y administrativos' : 'Error al cargar resultados administrativos';
-            // Continuar sin resultados administrativos
         }
         
-        // Si hay error de carga o no hay datos
-        if (errorCarga && (!resultadosFuncionarios || resultadosFuncionarios.length === 0) && (!resultadosAdministrativos || resultadosAdministrativos.length === 0)) {
-            console.log('ℹ️ No hay datos de resultados disponibles');
+        // Si no hay datos de ningún tipo, mostrar mensaje amigable
+        if ((!resultadosFuncionarios || resultadosFuncionarios.length === 0) && (!resultadosAdministrativos || resultadosAdministrativos.length === 0)) {
+            console.log('ℹ️ No hay datos de resultados disponibles aún');
             return res.render('resultados', {
                 resultadosFuncionarios: [],
                 resultadosAdministrativos: [],
                 mensaje: 'Aún no hay resultados disponibles. Sé el primero en participar.',
                 tipoVista: tipo,
-                error: null
+                error: errorCarga
             });
-        }
-        
-        // Si hay error pero algunos datos están disponibles
-        if (errorCarga) {
-            console.log('⚠️ Algunos datos cargaron con errores, pero mostrando los disponibles');
         }
         
         res.render('resultados', { 
@@ -57,6 +48,7 @@ router.get('/:tipo?', async (req, res) => {
             mensaje: null,
             tipoVista: tipo,
             error: errorCarga
+            // 👆 NO incluir 'participantes' aquí - eso es para otra vista
         });
         
     } catch (error) {
