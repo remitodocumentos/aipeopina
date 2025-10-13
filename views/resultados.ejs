@@ -9,7 +9,7 @@
         <% } else if (tipoVista === 'final') { %>
             Resultados Completos - Aipe Opina
         <% } else { %>
-            Resultados - Aipe Opina
+            Resultados por Participante - Aipe Opina
         <% } %>
     </title>
     <link rel="stylesheet" href="/css/styles.css">
@@ -20,29 +20,31 @@
         <header>
             <h1>
                 <% if (tipoVista === 'inicial') { %>
-                    Así opina la comunidad de Aipe
+                    Resultados por Participante
                 <% } else if (tipoVista === 'final') { %>
-                    Resultados Consolidados
+                    Resultados Completos por Participante
                 <% } else { %>
-                    Resultados de la Evaluación
+                    Resultados Detallados por Participante
                 <% } %>
             </h1>
             
             <% if (tipoVista === 'inicial') { %>
-                <h2>Evaluación de Funcionarios Completada</h2>
+                <h2>Evaluación de Funcionarios - Agrupado por Participante</h2>
             <% } else if (tipoVista === 'final') { %>
-                <h2>Evaluación Completa Finalizada</h2>
+                <h2>Evaluación Completa - Agrupado por Participante</h2>
+            <% } else { %>
+                <h2>Todas las evaluaciones agrupadas por participante</h2>
             <% } %>
         </header>
 
         <div class="resultados-container">
             <h2>
                 <% if (tipoVista === 'inicial') { %>
-                    📊 Resultados Parciales
+                    📊 Resultados Parciales por Participante
                 <% } else if (tipoVista === 'final') { %>
-                    🎯 Resultados Consolidados
+                    🎯 Resultados Completos por Participante
                 <% } else { %>
-                    📈 Resultados Generales
+                    👥 Resultados Agrupados por Participante
                 <% } %>
             </h2>
             
@@ -57,156 +59,149 @@
                 </div>
             <% } else { %>
             
-            <!-- SECCIÓN DE FUNCIONARIOS (SIEMPRE VISIBLE) -->
-            <section class="resultados-funcionarios">
-                <h3>Calificación de Funcionarios</h3>
-                
-                <% if (!resultadosFuncionarios || resultadosFuncionarios.length === 0) { %>
-                    <div class="sin-datos">
-                        <p>📝 Aún no hay calificaciones para funcionarios.</p>
+            <!-- RESUMEN DE PARTICIPANTES -->
+            <div class="resumen-participantes">
+                <h3>📈 Resumen General</h3>
+                <div class="estadisticas-participantes">
+                    <div class="estadistica-item">
+                        <span class="numero"><%= participantes.length %></span>
+                        <span class="label">Participantes</span>
                     </div>
-                <% } else { %>
-                    <!-- Mismo código de funcionarios para todos los tipos -->
-                    <% let funcionarioActual = null; %>
-                    <% let preguntaActual = null; %>
+                    <div class="estadistica-item">
+                        <span class="numero">
+                            <%= participantes.filter(p => p.total_respuestas_funcionarios > 0).length %>
+                        </span>
+                        <span class="label">Evaluaron Funcionarios</span>
+                    </div>
+                    <div class="estadistica-item">
+                        <span class="numero">
+                            <%= participantes.filter(p => p.total_respuestas_administrativas > 0).length %>
+                        </span>
+                        <span class="label">Evaluaron Administrativo</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LISTA DE PARTICIPANTES -->
+            <% participantes.forEach(participante => { %>
+            <div class="participante-block" id="participante-<%= participante.id %>">
+                <!-- ENCABEZADO DEL PARTICIPANTE -->
+                <div class="participante-header">
+                    <div class="participante-info">
+                        <h3>
+                            <% if (participante.nombre && participante.nombre.trim() !== '') { %>
+                                👤 <%= participante.nombre %>
+                            <% } else { %>
+                                👤 Participante Anónimo
+                            <% } %>
+                        </h3>
+                        <div class="participante-meta">
+                            <span class="badge <%= participante.tipo_participacion === 'Con nombre' ? 'badge-nombre' : 'badge-anonimo' %>">
+                                <%= participante.tipo_participacion %>
+                            </span>
+                            <span class="dispositivo-id">ID: <%= participante.dispositivo_id %></span>
+                            <span class="fechas">
+                                Primera respuesta: <%= participante.primera_respuesta %>
+                                <% if (participante.ultima_respuesta !== participante.primera_respuesta) { %>
+                                • Última: <%= participante.ultima_respuesta %>
+                                <% } %>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="participante-stats">
+                        <span class="stat">
+                            <strong><%= participante.total_respuestas_funcionarios || 0 %></strong> funcionarios
+                        </span>
+                        <span class="stat">
+                            <strong><%= participante.total_respuestas_administrativas || 0 %></strong> administrativas
+                        </span>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DE FUNCIONARIOS -->
+                <% if (resultadosPorParticipante.funcionarios[participante.id] && resultadosPorParticipante.funcionarios[participante.id].length > 0) { %>
+                <div class="seccion-participante">
+                    <h4>🏛️ Evaluación de Funcionarios</h4>
                     
-                    <% resultadosFuncionarios.forEach(resultado => { %>
+                    <% let funcionarioActual = null; %>
+                    <% resultadosPorParticipante.funcionarios[participante.id].forEach(resultado => { %>
                         <% if (funcionarioActual !== resultado.funcionario_id) { %>
                             <% if (funcionarioActual !== null) { %>
                                     </div>
                                 </div>
                             <% } %>
-                            <div class="funcionario-resultados">
-                                <h4><%= resultado.funcionario_nombre %> - <%= resultado.cargo %></h4>
+                            <div class="funcionario-participante">
+                                <h5><%= resultado.funcionario_nombre %> - <%= resultado.cargo %></h5>
+                                <div class="preguntas-participante">
                             <% funcionarioActual = resultado.funcionario_id; %>
                         <% } %>
                         
-                        <% if (preguntaActual !== resultado.pregunta_id) { %>
-                            <% if (preguntaActual !== null) { %>
-                                    </div>
-                                </div>
-                            <% } %>
-                            <div class="pregunta-resultados">
-                                <h5><%= resultado.pregunta_texto %></h5>
-                                <div class="resultados-grafica">
-                            <% preguntaActual = resultado.pregunta_id; %>
-                        <% } %>
-                        
-                        <div class="resultado-item">
-                            <span class="respuesta-label"><%= resultado.respuesta %>:</span>
-                            <div class="barra-container">
-                                <div class="barra" style="width: 0%;" data-cantidad="<%= resultado.cantidad %>"></div>
-                            </div>
-                            <span class="cantidad"><%= resultado.cantidad %></span>
+                        <div class="respuesta-participante">
+                            <span class="pregunta-texto"><%= resultado.pregunta_texto %></span>
+                            <span class="respuesta-valor <%= resultado.respuesta %>">
+                                <%= resultado.respuesta %>
+                            </span>
                         </div>
                     <% }); %>
                     
                     <% if (funcionarioActual !== null) { %>
                             </div>
                         </div>
-                    </div>
                     <% } %>
+                </div>
                 <% } %>
-            </section>
-            
-            <!-- SECCIÓN ADMINISTRATIVA (SIEMPRE VISIBLE) -->
-            <section class="resultados-administrativos">
-                <h3>Calificación Administrativa</h3>
-                
-                <% if (!resultadosAdministrativos || resultadosAdministrativos.length === 0) { %>
-                    <div class="sin-datos">
-                        <p>📋 Aún no hay calificaciones para la gestión administrativa.</p>
-                    </div>
-                <% } else { %>
-                    <!-- Mismo código administrativo para todos los tipos -->
-                    <% let seccionActual = null; %>
-                    <% let preguntaActual = null; %>
+
+                <!-- SECCIÓN ADMINISTRATIVA -->
+                <% if (resultadosPorParticipante.administrativas[participante.id] && resultadosPorParticipante.administrativas[participante.id].length > 0) { %>
+                <div class="seccion-participante">
+                    <h4>🏢 Evaluación Administrativa</h4>
                     
-                    <% resultadosAdministrativos.forEach(resultado => { %>
+                    <% let seccionActual = null; %>
+                    <% resultadosPorParticipante.administrativas[participante.id].forEach(resultado => { %>
                         <% if (seccionActual !== resultado.seccion_id) { %>
                             <% if (seccionActual !== null) { %>
                                     </div>
                                 </div>
                             <% } %>
-                            <div class="seccion-resultados">
-                                <h4><%= resultado.seccion_nombre %></h4>
+                            <div class="seccion-participante-item">
+                                <h5><%= resultado.seccion_nombre %></h5>
+                                <div class="preguntas-participante">
                             <% seccionActual = resultado.seccion_id; %>
                         <% } %>
                         
-                        <% if (preguntaActual !== resultado.pregunta_id) { %>
-                            <% if (preguntaActual !== null) { %>
-                                    </div>
-                                </div>
-                            <% } %>
-                            <div class="pregunta-resultados">
-                                <h5><%= resultado.pregunta_texto %></h5>
-                                <div class="resultados-grafica">
-                            <% preguntaActual = resultado.pregunta_id; %>
-                        <% } %>
-                        
-                        <div class="resultado-item">
-                            <span class="respuesta-label"><%= resultado.respuesta %>:</span>
-                            <div class="barra-container">
-                                <div class="barra" style="width: 0%;" data-cantidad="<%= resultado.cantidad %>"></div>
-                            </div>
-                            <span class="cantidad"><%= resultado.cantidad %></span>
+                        <div class="respuesta-participante">
+                            <span class="pregunta-texto"><%= resultado.pregunta_texto %></span>
+                            <span class="respuesta-valor <%= resultado.respuesta %>">
+                                <%= resultado.respuesta %>
+                            </span>
                         </div>
                     <% }); %>
                     
                     <% if (seccionActual !== null) { %>
                             </div>
                         </div>
-                    </div>
                     <% } %>
+                </div>
                 <% } %>
-            </section>
 
-            <!-- BOTONES DINÁMICOS SEGÚN EL TIPO DE VISTA -->
+                <!-- SEPARADOR ENTRE PARTICIPANTES -->
+                <div class="participante-separator"></div>
+            </div>
+            <% }); %>
+            
+            <!-- BOTONES DE NAVEGACIÓN -->
             <div class="navegacion-resultados">
                 <div class="acciones-navegacion">
                     <% if (tipoVista === 'inicial') { %>
-                        <!-- VISTA INICIAL: Después de funcionarios -->
                         <a href="/evaluacion/administrativo" class="btn-continuar">
                             <span class="icono">➡️</span>
                             Continuar con Evaluación Administrativa
                         </a>
-                        <a href="/" class="btn-inicio">
-                            <span class="icono">🏠</span>
-                            Volver al Inicio
-                        </a>
-                        
-                    <% } else if (tipoVista === 'final') { %>
-                        <!-- VISTA FINAL: Después de completar todo -->
-                        <a href="/" class="btn-inicio">
-                            <span class="icono">🏠</span>
-                            Volver al Inicio
-                        </a>
-                        <a href="/resultados/inicial" class="btn-comparar">
-                            <span class="icono">📊</span>
-                            Ver Resultados Parciales
-                        </a>
-                        
-                    <% } else { %>
-                        <!-- VISTA GENERAL: Página principal de resultados -->
-                        <a href="/evaluacion/funcionarios" class="btn-participar">
-                            <span class="icono">📝</span>
-                            Participar en la Evaluación
-                        </a>
-                        <a href="/" class="btn-inicio">
-                            <span class="icono">🏠</span>
-                            Volver al Inicio
-                        </a>
                     <% } %>
-                </div>
-                
-                <div class="info-navegacion">
-                    <% if (tipoVista === 'inicial') { %>
-                        <p>💡 <strong>¿Ya terminaste con los funcionarios?</strong> Continúa con la evaluación administrativa para completar tu participación.</p>
-                    <% } else if (tipoVista === 'final') { %>
-                        <p>🎉 <strong>¡Evaluación completada!</strong> Gracias por tu participación en ambas evaluaciones.</p>
-                    <% } else { %>
-                        <p>👀 <strong>Resultados consolidados</strong> de todas las evaluaciones realizadas por la comunidad.</p>
-                    <% } %>
+                    <a href="/" class="btn-inicio">
+                        <span class="icono">🏠</span>
+                        Volver al Inicio
+                    </a>
                 </div>
             </div>
             
@@ -218,53 +213,238 @@
         </footer>
     </div>
 
-    <!-- MISMO SCRIPT PARA TODOS -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Inicializando gráficas para vista: <%= tipoVista %>');
-        
-        const barras = document.querySelectorAll('.barra');
-        
-        barras.forEach(barra => {
-            try {
-                const cantidad = parseInt(barra.getAttribute('data-cantidad'));
-                const preguntaDiv = barra.closest('.pregunta-resultados');
-                
-                if (!preguntaDiv) return;
-                
-                const cantidades = preguntaDiv.querySelectorAll('.cantidad');
-                let total = 0;
-                cantidades.forEach(c => {
-                    total += parseInt(c.textContent) || 0;
-                });
-                
-                const porcentaje = total > 0 ? (cantidad / total) * 100 : 0;
-                
-                setTimeout(() => {
-                    barra.style.width = porcentaje + '%';
-                }, 100);
-                
-                // Colores según respuesta
-                const resultadoItem = barra.closest('.resultado-item');
-                if (resultadoItem) {
-                    const respuestaLabel = resultadoItem.querySelector('.respuesta-label');
-                    if (respuestaLabel) {
-                        const respuesta = respuestaLabel.textContent.toLowerCase();
-                        const colores = {
-                            'excelente': '#27ae60',
-                            'bueno': '#2ecc71',
-                            'regular': '#f39c12',
-                            'deficiente': '#e67e22',
-                            'malo': '#e74c3c'
-                        };
-                        barra.style.backgroundColor = colores[respuesta] || '#2c5aa0';
-                    }
-                }
-            } catch (error) {
-                console.error('Error inicializando barra:', error);
+    <style>
+        /* ESTILOS PARA VISTA POR PARTICIPANTE */
+        .resumen-participantes {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .estadisticas-participantes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .estadistica-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .estadistica-item .numero {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .estadistica-item .label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .participante-block {
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .participante-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .participante-info h3 {
+            color: #2c5aa0;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .participante-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .badge-nombre {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-anonimo {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .dispositivo-id {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .fechas {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .participante-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            text-align: right;
+        }
+
+        .participante-stats .stat {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .seccion-participante {
+            padding: 20px;
+        }
+
+        .seccion-participante h4 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        .funcionario-participante, .seccion-participante-item {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #fafafa;
+            border-radius: 8px;
+            border-left: 4px solid #2c5aa0;
+        }
+
+        .seccion-participante-item {
+            border-left-color: #f39c12;
+        }
+
+        .funcionario-participante h5, .seccion-participante-item h5 {
+            color: #2c5aa0;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .preguntas-participante {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 10px;
+        }
+
+        .respuesta-participante {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .pregunta-texto {
+            flex: 1;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .respuesta-valor {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-transform: capitalize;
+            margin-left: 10px;
+        }
+
+        /* Colores para las respuestas */
+        .respuesta-valor.excelente {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .respuesta-valor.bueno {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .respuesta-valor.regular {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .respuesta-valor.deficiente {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .respuesta-valor.malo {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .participante-separator {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+            margin: 0 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .participante-header {
+                flex-direction: column;
+                gap: 15px;
             }
-        });
-    });
-    </script>
+
+            .participante-stats {
+                flex-direction: row;
+                text-align: left;
+                width: 100%;
+            }
+
+            .preguntas-participante {
+                grid-template-columns: 1fr;
+            }
+
+            .respuesta-participante {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .respuesta-valor {
+                align-self: flex-end;
+            }
+        }
+    </style>
 </body>
 </html>

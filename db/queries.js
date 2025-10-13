@@ -394,6 +394,127 @@ module.exports.getParticipantesConRespuestasAdministrativas = async () => {
     return parseInt(result.rows[0].count);
 };
 
+// Función para obtener resultados agrupados por participante - FUNCIONARIOS
+module.exports.getResultadosFuncionariosPorParticipante = async () => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                p.id AS participante_id,
+                p.nombre AS participante_nombre,
+                p.dispositivo_id,
+                CASE 
+                    WHEN p.nombre IS NULL OR p.nombre = '' THEN 'Anónimo'
+                    ELSE 'Con nombre' 
+                END AS tipo_participacion,
+                f.id AS funcionario_id,
+                f.nombre AS funcionario_nombre,
+                f.cargo,
+                f.seccion,
+                pf.id AS pregunta_id,
+                pf.texto AS pregunta_texto,
+                pf.categoria,
+                rf.respuesta,
+                TO_CHAR(rf.fecha, 'DD/MM/YYYY HH24:MI:SS') AS fecha_respuesta
+            FROM respuestas_funcionarios rf
+            JOIN participantes p ON rf.participante_id = p.id
+            JOIN funcionarios f ON rf.funcionario_id = f.id
+            JOIN preguntas_funcionarios pf ON rf.pregunta_id = pf.id
+            ORDER BY 
+                -- Primero por participante
+                CASE 
+                    WHEN p.nombre IS NULL OR p.nombre = '' THEN 'ZZZ_Anónimo'
+                    ELSE p.nombre 
+                END ASC,
+                p.id ASC,
+                -- Luego por funcionario
+                f.nombre ASC,
+                -- Finalmente por categoría de pregunta
+                pf.categoria ASC,
+                pf.id ASC
+        `);
+        return result.rows;
+    } catch (error) {
+        console.error('Error en getResultadosFuncionariosPorParticipante:', error);
+        throw error;
+    }
+};
+
+// Función para obtener resultados agrupados por participante - ADMINISTRATIVAS
+module.exports.getResultadosAdministrativosPorParticipante = async () => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                p.id AS participante_id,
+                p.nombre AS participante_nombre,
+                p.dispositivo_id,
+                CASE 
+                    WHEN p.nombre IS NULL OR p.nombre = '' THEN 'Anónimo'
+                    ELSE 'Con nombre' 
+                END AS tipo_participacion,
+                sa.id AS seccion_id,
+                sa.nombre AS seccion_nombre,
+                pa.id AS pregunta_id,
+                pa.texto AS pregunta_texto,
+                ra.respuesta,
+                TO_CHAR(ra.fecha, 'DD/MM/YYYY HH24:MI:SS') AS fecha_respuesta
+            FROM respuestas_administrativas ra
+            JOIN participantes p ON ra.participante_id = p.id
+            JOIN secciones_administrativas sa ON ra.seccion_id = sa.id
+            JOIN preguntas_administrativas pa ON ra.pregunta_id = pa.id
+            ORDER BY 
+                -- Primero por participante
+                CASE 
+                    WHEN p.nombre IS NULL OR p.nombre = '' THEN 'ZZZ_Anónimo'
+                    ELSE p.nombre 
+                END ASC,
+                p.id ASC,
+                -- Luego por sección
+                sa.nombre ASC,
+                -- Finalmente por pregunta
+                pa.texto ASC
+        `);
+        return result.rows;
+    } catch (error) {
+        console.error('Error en getResultadosAdministrativosPorParticipante:', error);
+        throw error;
+    }
+};
+
+// Función para obtener lista de participantes únicos
+module.exports.getParticipantesUnicos = async () => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                p.id,
+                p.nombre,
+                p.dispositivo_id,
+                CASE 
+                    WHEN p.nombre IS NULL OR p.nombre = '' THEN 'Anónimo'
+                    ELSE 'Con nombre' 
+                END AS tipo_participacion,
+                COUNT(DISTINCT rf.id) AS total_respuestas_funcionarios,
+                COUNT(DISTINCT ra.id) AS total_respuestas_administrativas,
+                TO_CHAR(MIN(COALESCE(rf.fecha, ra.fecha)), 'DD/MM/YYYY HH24:MI:SS') AS primera_respuesta,
+                TO_CHAR(MAX(COALESCE(rf.fecha, ra.fecha)), 'DD/MM/YYYY HH24:MI:SS') AS ultima_respuesta
+            FROM participantes p
+            LEFT JOIN respuestas_funcionarios rf ON p.id = rf.participante_id
+            LEFT JOIN respuestas_administrativas ra ON p.id = ra.participante_id
+            WHERE rf.id IS NOT NULL OR ra.id IS NOT NULL
+            GROUP BY p.id, p.nombre, p.dispositivo_id
+            ORDER BY 
+                CASE 
+                    WHEN p.nombre IS NULL OR p.nombre = '' THEN 'ZZZ_Anónimo'
+                    ELSE p.nombre 
+                END ASC,
+                p.id ASC
+        `);
+        return result.rows;
+    } catch (error) {
+        console.error('Error en getParticipantesUnicos:', error);
+        throw error;
+    }
+};
+
 // Contador de visitas (usaremos la tabla participantes como proxy)
 module.exports.getTotalVisitas = async () => {
     const result = await pool.query('SELECT COUNT(*) FROM participantes');

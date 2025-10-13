@@ -137,16 +137,20 @@ footer {
     margin-top: 20px;
 }
 
-/* Resultados */
+/* ========== RESULTADOS - CORREGIDO ========== */
 .resultados-container {
     background: white;
     border-radius: 10px;
     padding: 30px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow: hidden; /* 👈 EVITA DESBORDAMIENTO */
 }
 
 .resultados-funcionarios, .resultados-administrativos {
     margin-bottom: 40px;
+    width: 100%; /* 👈 ASEGURA ANCHO COMPLETO */
 }
 
 .funcionario-resultados, .seccion-resultados {
@@ -154,45 +158,86 @@ footer {
     padding: 20px;
     border: 1px solid #eee;
     border-radius: 5px;
+    background: #fafafa; /* 👈 FONDO DIFERENCIADO */
+    width: 100%; /* 👈 EVITA DESBORDAMIENTO */
+    box-sizing: border-box; /* 👈 INCLUYE PADDING EN EL ANCHO */
 }
 
 .pregunta-resultados {
     margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    border-left: 4px solid #e9ecef;
+    width: 100%; /* 👈 ANCHO COMPLETO */
 }
 
 .resultados-grafica {
     margin-top: 10px;
+    width: 100%; /* 👈 ANCHO COMPLETO */
 }
 
 .resultado-item {
     display: flex;
     align-items: center;
     margin-bottom: 8px;
+    width: 100%; /* 👈 ANCHO COMPLETO */
+    flex-wrap: nowrap; /* 👈 EVITA QUE SE ROMPA */
 }
 
-.resultado-item span:first-child {
-    width: 100px;
+.respuesta-label {
+    min-width: 120px; /* 👈 ANCHO FIJO PARA ETIQUETAS */
     font-weight: bold;
+    color: #495057;
+    text-transform: capitalize;
+    flex-shrink: 0; /* 👈 EVITA QUE SE ENCOJA */
 }
 
 .barra-container {
     flex-grow: 1;
-    height: 20px;
-    background: var(--light);
-    border-radius: 10px;
-    margin: 0 10px;
+    height: 25px; /* 👈 MÁS ALTO PARA MEJOR VISIBILIDAD */
+    background: #e9ecef;
+    border-radius: 12px;
+    margin: 0 15px;
     overflow: hidden;
+    position: relative;
+    min-width: 100px; /* 👈 ANCHO MÍNIMO */
 }
 
 .barra {
     height: 100%;
-    background: var(--primary);
+    border-radius: 12px;
     transition: width 1s ease-in-out;
+    min-width: 3%;
+}
+
+/* 👇 COLORES DIFERENCIADOS PARA CADA RESPUESTA */
+.barra.excelente {
+    background: linear-gradient(90deg, #27ae60, #2ecc71);
+}
+
+.barra.bueno {
+    background: linear-gradient(90deg, #3498db, #2980b9);
+}
+
+.barra.regular {
+    background: linear-gradient(90deg, #f39c12, #e67e22);
+}
+
+.barra.deficiente {
+    background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+
+.barra.malo {
+    background: linear-gradient(90deg, #95a5a6, #7f8c8d);
 }
 
 .cantidad {
-    width: 40px;
+    min-width: 40px;
     text-align: right;
+    font-weight: bold;
+    color: #2c5aa0;
+    flex-shrink: 0; /* 👈 EVITA QUE SE ENCOJA */
 }
 
 /* Responsive */
@@ -212,11 +257,37 @@ footer {
     .resultado-item {
         flex-direction: column;
         align-items: flex-start;
+        gap: 8px;
     }
     
     .barra-container {
         width: 100%;
         margin: 5px 0;
+    }
+    
+    .respuesta-label {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .cantidad {
+        width: 100%;
+        text-align: left;
+    }
+    
+    /* 👇 CORRECCIÓN RESPONSIVE PARA RESULTADOS */
+    .resultados-container {
+        padding: 15px;
+        margin: 10px;
+    }
+    
+    .funcionario-resultados, .seccion-resultados {
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .pregunta-resultados {
+        padding: 10px;
     }
 }
 
@@ -425,7 +496,7 @@ footer {
     color: #1976D2;
 }
 
-/* Responsive */
+/* Responsive para descargas */
 @media (max-width: 768px) {
     .descargas-grid {
         grid-template-columns: 1fr;
@@ -434,4 +505,29 @@ footer {
     .descarga-card {
         padding: 20px;
     }
+}
+
+/* 👇 ESTILOS ADICIONALES PARA MEJORAR LA VISUALIZACIÓN */
+.funcionario-resultados h4, .seccion-resultados h4 {
+    color: #2c5aa0;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 8px;
+}
+
+.pregunta-resultados h5 {
+    color: #495057;
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* 👇 CLASES PARA DIFERENCIAR SECCIONES */
+.funcionario-resultados {
+    border-left: 5px solid #2c5aa0;
+}
+
+.seccion-resultados {
+    border-left: 5px solid #f39c12;
 }
