@@ -59,6 +59,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// RUTAS
+const webRoutes = require('./routes/web');
+const evaluacionRoutes = require('./routes/evaluacion');
+const resultadosRoutes = require('./routes/resultados');
+
 // 🛣️ Rutas
 app.use('/', require('./routes/index'));
 app.use('/evaluacion', require('./routes/evaluacion'));
@@ -67,6 +72,10 @@ app.use('/detalle-participante', require('./routes/detalle-participante')); // �
 app.use('/admin', require('./routes/admin'));
 app.use('/export', require('./routes/export')); // Exportación con auth
 app.use('/descargar', require('./routes/export-public')); // 👈 Exportación PÚBLICA
+
+app.use('/', webRoutes); // ✅ Esto incluye /ya-participo y /
+app.use('/evaluacion', evaluacionRoutes);
+app.use('/resultados', resultadosRoutes);
 
 // Redirecciones para compatibilidad
 app.get('/resultados-inicial', (req, res) => res.redirect('/resultados/inicial'));
