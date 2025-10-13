@@ -65,6 +65,7 @@ router.get('/', async (req, res) => {
         console.error('❌ ERROR al cargar detalle por participante:', error);
         res.status(500).render('error', {
             message: 'Error al cargar el detalle por participante',
+            details: error.message,
             error: process.env.NODE_ENV === 'production' ? {} : error
         });
     }
