@@ -1,15 +1,15 @@
 <%- include('partials/header-two') %>
 
+// Determinar qué evaluación ya fue completada
 <%
-// Usar la variable 'tipo' que se pasa desde el controlador
-const tipoEval = typeof tipo !== 'undefined' ? tipo : 'completa';
+const tipo = req.query.tipo || 'completa';
 let mensajeTitulo = '';
 let mensajeDetalle = '';
 
-if (tipoEval === 'funcionarios') {
+if (tipo === 'funcionarios') {
     mensajeTitulo = 'Ya completaste la evaluación de funcionarios';
     mensajeDetalle = 'Has terminado la primera parte de la evaluación. Puedes continuar con la evaluación administrativa.';
-} else if (tipoEval === 'administrativas') {
+} else if (tipo === 'administrativas') {
     mensajeTitulo = 'Ya completaste la evaluación administrativa';
     mensajeDetalle = '¡Felicidades! Has completado ambas partes de la evaluación.';
 } else {
@@ -21,9 +21,9 @@ if (tipoEval === 'funcionarios') {
 <div class="container">
     <div class="mensaje-ya-participo">
         <div class="icono-advertencia">
-            <% if (tipoEval === 'funcionarios') { %>
+            <% if (tipo === 'funcionarios') { %>
                 ✅
-            <% } else if (tipoEval === 'administrativas') { %>
+            <% } else if (tipo === 'administrativas') { %>
                 🎉
             <% } else { %>
                 🚫
@@ -42,7 +42,7 @@ if (tipoEval === 'funcionarios') {
         </div>
         
         <div class="acciones">
-            <% if (tipoEval === 'funcionarios') { %>
+            <% if (tipo === 'funcionarios') { %>
                 <a href="/evaluacion/administrativo" class="btn-continuar">
                     ➡️ Continuar con Evaluación Administrativa
                 </a>

@@ -59,11 +59,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// RUTAS
-const webRoutes = require('./routes/web');
-const evaluacionRoutes = require('./routes/evaluacion');
-const resultadosRoutes = require('./routes/resultados');
-
 // 🛣️ Rutas
 app.use('/', require('./routes/index'));
 app.use('/evaluacion', require('./routes/evaluacion'));
@@ -73,10 +68,6 @@ app.use('/admin', require('./routes/admin'));
 app.use('/export', require('./routes/export')); // Exportación con auth
 app.use('/descargar', require('./routes/export-public')); // 👈 Exportación PÚBLICA
 
-app.use('/', webRoutes); // ✅ Esto incluye /ya-participo y /
-app.use('/evaluacion', evaluacionRoutes);
-app.use('/resultados', resultadosRoutes);
-
 // Redirecciones para compatibilidad
 app.get('/resultados-inicial', (req, res) => res.redirect('/resultados/inicial'));
 app.get('/resultados-final', (req, res) => res.redirect('/resultados/final'));
@@ -84,11 +75,6 @@ app.get('/resultados-final', (req, res) => res.redirect('/resultados/final'));
 // ✅ NUEVA RUTA PARA PÁGINA "YA PARTICIPÓ"
 router.get('/ya-participo', (req, res) => {
     const tipo = req.query.tipo || 'completa';
-    
-    // Validar que el tipo sea uno de los permitidos
-    const tiposPermitidos = ['funcionarios', 'administrativas', 'completa'];
-    const tipoFinal = tiposPermitidos.includes(tipo) ? tipo : 'completa';
-    
     res.render('ya-participo', {
         tipo: tipoFinal
     });
