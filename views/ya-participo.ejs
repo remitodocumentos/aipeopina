@@ -1,62 +1,34 @@
-<%- include('partials/header-two') %>
-
-// Determinar qué caliicación ya fue completada
-<%
-const tipo = req.query.tipo || 'completa';
-let mensajeTitulo = '';
-let mensajeDetalle = '';
-
-if (tipo === 'funcionarios') {
-    mensajeTitulo = 'Ya completaste la calificación de funcionarios';
-    mensajeDetalle = 'Has terminado la primera parte de la calificación. Puedes continuar con la clificación administrativa.';
-} else if (tipo === 'administrativas') {
-    mensajeTitulo = 'Ya completaste la calificación administrativa';
-    mensajeDetalle = '¡Felicidades! Has completado ambas partes de la clificación.';
-} else {
-    mensajeTitulo = 'Ya has participado en esta calificación';
-    mensajeDetalle = 'Has completado todas las calificaciones disponibles.';
-}
-%>
+<%- include('partials/header') %>
 
 <div class="container">
-    <div class="mensaje-ya-participo">
-        <div class="icono-advertencia">
-            <% if (tipo === 'funcionarios') { %>
-                ✅
-            <% } else if (tipo === 'administrativas') { %>
-                🎉
-            <% } else { %>
-                🚫
-            <% } %>
-        </div>
-        <h2><%= mensajeTitulo %></h2>
-        <p><strong><%= mensajeDetalle %></strong></p>
+    <div class="mensaje-participacion">
+        <div class="icono-advertencia">⚠️</div>
         
-        <div class="info-adicional">
-            <p>Por motivos de transparencia y para garantizar la integridad de los resultados:</p>
-            <ul>
-                <li>Solo permitimos <strong>una participación por dispositivo</strong></li>
-                <li>No es posible modificar las respuestas una vez enviadas</li>
-                <li>Cada dispositivo (computador, móvil, tablet) solo puede participar una vez</li>
-            </ul>
-        </div>
+        <% if (tipo === 'funcionarios') { %>
+            <h1>Ya participaste en la calificación de funcionarios</h1>
+            <p>Tu dispositivo ya ha completado la calificación de funcionarios municipales.</p>
+            <p>Solo se permite una participación por dispositivo para mantener la integridad de los resultados.</p>
+        <% } else if (tipo === 'administrativas') { %>
+            <h1>Ya participaste en la calificación administrativa</h1>
+            <p>Tu dispositivo ya ha completado la calificación de la gestión administrativa.</p>
+            <p>Solo se permite una participación por dispositivo para mantener la integridad de los resultados.</p>
+        <% } else { %>
+            <h1>Ya participaste</h1>
+            <p>Tu dispositivo ya ha completado una calificación anteriormente.</p>
+            <p>Solo se permite una participación por dispositivo.</p>
+        <% } %>
         
         <div class="acciones">
-            <% if (tipo === 'funcionarios') { %>
-                <a href="/evaluacion/administrativo" class="btn-continuar">
-                    ➡️ Continuar con Calificación Administrativa
-                </a>
-            <% } %>
-            <a href="/resultados" class="btn-primary">📊 Ver Resultados</a>
-            <a href="/" class="btn-secondary">🏠 Volver al Inicio</a>
+            <a href="/resultados" class="btn-primary">Ver Resultados</a>
+            <a href="/" class="btn-secondary">Volver al Inicio</a>
         </div>
     </div>
 </div>
 
 <style>
-.mensaje-ya-participo {
+.mensaje-participacion {
     max-width: 600px;
-    margin: 80px auto;
+    margin: 100px auto;
     padding: 40px;
     background: white;
     border-radius: 15px;
@@ -64,67 +36,32 @@ if (tipo === 'funcionarios') {
     text-align: center;
 }
 
-.mensaje-ya-participo h2 {
-    color: #2c5aa0;
-    margin-bottom: 20px;
-    font-size: 1.8rem;
-}
-
 .icono-advertencia {
     font-size: 4rem;
+    color: #ffc107;
     margin-bottom: 20px;
 }
 
-.info-adicional {
-    text-align: left;
-    margin: 25px 0;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 10px;
-    border-left: 4px solid #2c5aa0;
-}
-
-.info-adicional ul {
-    margin: 10px 0;
-    padding-left: 20px;
-}
-
-.info-adicional li {
-    margin-bottom: 8px;
-    line-height: 1.5;
+.mensaje-participacion h1 {
+    color: #2c5aa0;
+    margin-bottom: 20px;
 }
 
 .acciones {
     margin-top: 30px;
     display: flex;
-    flex-direction: column;
     gap: 15px;
-}
-
-.btn-continuar {
-    display: inline-block;
-    padding: 15px 25px;
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: bold;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
-}
-
-.btn-continuar:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .btn-primary, .btn-secondary {
-    display: inline-block;
     padding: 12px 25px;
+    border-radius: 5px;
     text-decoration: none;
-    border-radius: 8px;
     font-weight: bold;
     transition: all 0.3s ease;
+    display: inline-block;
 }
 
 .btn-primary {
@@ -134,6 +71,7 @@ if (tipo === 'funcionarios') {
 
 .btn-primary:hover {
     background: #1a3a6e;
+    transform: translateY(-2px);
 }
 
 .btn-secondary {
@@ -143,16 +81,17 @@ if (tipo === 'funcionarios') {
 
 .btn-secondary:hover {
     background: #5a6268;
+    transform: translateY(-2px);
 }
 
 @media (max-width: 768px) {
-    .mensaje-ya-participo {
-        margin: 40px 20px;
-        padding: 25px;
+    .mensaje-participacion {
+        margin: 50px 20px;
+        padding: 30px 20px;
     }
     
     .acciones {
-        gap: 12px;
+        flex-direction: column;
     }
 }
 </style>

@@ -75,7 +75,7 @@ app.get('/resultados-final', (req, res) => res.redirect('/resultados/final'));
 // ✅ NUEVA RUTA PARA PÁGINA "YA PARTICIPÓ"
 app.get('/ya-participo', (req, res) => {
     res.render('ya-participo', { 
-        tipo: req.query.tipo 
+        tipo: req.query.tipo || 'general'  // 👈 Asegurar valor por defecto
     });
 });
 
