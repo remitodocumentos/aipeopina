@@ -5,6 +5,7 @@ const db = require('../db/queries');
 const participacionMiddleware = require('../middleware/participacion');
 
 // Middleware para verificar participación
+router.use(participacionMiddleware.verificarParticipacion);
 router.use(participacionMiddleware.generarDispositivoId);
 
 // FORMULARIO DE FUNCIONARIOS
@@ -32,48 +33,22 @@ router.get('/funcionarios',
     }
 );
 
-// PROCESAR FUNCIONARIOS 
+// PROCESAR FUNCIONARIOS - VERSIÓN SIMPLIFICADA
 router.post('/funcionarios', async (req, res) => {
     try {
         console.log('=== GUARDANDO RESPUESTAS FUNCIONARIOS ===');
         
         const { nombre, dispositivo_id } = req.body;
         
-        // Validar que dispositivo_id esté presente
+        // Validaciones básicas
         if (!dispositivo_id) {
             console.error('Error: dispositivo_id no está presente');
             return res.status(400).render('error', {
-                message: 'No se pudo identificar tu dispositivo',
-                details: 'Por favor, recarga la página e intenta nuevamente.'
+                message: 'No se pudo identificar tu dispositivo'
             });
         }
 
-        // VERIFICACIÓN DE PARTICIPACIÓN PREVIA
-        console.log('🔍 Verificando si el dispositivo ya participó en funcionarios...');
-        const verificacionParticipante = await db.query(
-            'SELECT id FROM participantes WHERE dispositivo_id = $1', 
-            [dispositivo_id]
-        );
-        
-        if (verificacionParticipante.rows.length > 0) {
-            const participanteId = verificacionParticipante.rows[0].id;
-            
-            // Verificar si YA TIENE respuestas de funcionarios
-            const respuestasExistentes = await db.query(
-                'SELECT COUNT(*) as count FROM respuestas_funcionarios WHERE participante_id = $1',
-                [participanteId]
-            );
-            
-            const totalRespuestas = parseInt(respuestasExistentes.rows[0].count);
-            console.log(`Respuestas de funcionarios existentes: ${totalRespuestas}`);
-            
-            if (totalRespuestas > 0) {
-                console.log('❌ BLOQUEO: Dispositivo ya participó en funcionarios.');
-                return res.redirect('/ya-participo?tipo=funcionarios');
-            }
-        }
-        
-        // REGISTRAR Y GUARDAR (código normal)
+        // REGISTRAR participante (la función registrarParticipante ya hace la verificación)
         console.log('✅ Registrando participante para funcionarios...');
         const participanteResult = await db.registrarParticipante(dispositivo_id, nombre, 'funcionarios');
         const participanteId = participanteResult.rows[0].id;
@@ -88,7 +63,7 @@ router.post('/funcionarios', async (req, res) => {
     } catch (error) {
         console.error('❌ Error al guardar respuestas de funcionarios:', error);
         
-        // MANEJAR ERRORES CON REDIRECCIONES HTML
+        // REDIRIGIR DIRECTAMENTE si es error de participación previa
         if (error.message.includes('ya ha completado') || error.message.includes('ya participó')) {
             return res.redirect('/ya-participo?tipo=funcionarios');
         }
